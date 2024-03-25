@@ -33,6 +33,7 @@ from legged_gym.envs.a1.a1_config import A1RoughCfg, A1RoughCfgPPO, A1PlaneCfg, 
 from .base.legged_robot import LeggedRobot
 from .base.legged_robot_field import LeggedRobotField
 from .base.legged_robot_noisy import LeggedRobotNoisy
+from .base.legged_robot_metra import LeggedRobotMetra
 from .anymal_c.anymal import Anymal
 from .anymal_c.mixed_terrains.anymal_c_rough_config import AnymalCRoughCfg, AnymalCRoughCfgPPO
 from .anymal_c.flat.anymal_c_flat_config import AnymalCFlatCfg, AnymalCFlatCfgPPO
@@ -86,3 +87,7 @@ from .go1.go1_crawl_config import Go1CrawlCfg, Go1CrawlCfgPPO
 task_registry.register( "go1_crawl", LeggedRobotNoisy, Go1CrawlCfg(), Go1CrawlCfgPPO() )
 from .go1.go1_tilt_config import Go1TiltCfg, Go1TiltCfgPPO
 task_registry.register( "go1_tilt", LeggedRobotNoisy, Go1TiltCfg(), Go1TiltCfgPPO() )
+
+
+from .a1.a1_tilt_metra_config import A1TiltMetraCfg, A1TiltMetraCfgPPO
+task_registry.register( "a1_tilt_metra", LeggedRobotMetra, A1TiltMetraCfg(), A1TiltMetraCfgPPO() )

@@ -32,6 +32,10 @@ import numpy as np
 import os
 from datetime import datetime
 
+os.environ["PATH"] = "/home/serho/miniconda3/envs/isaac2/bin:/home/serho/miniconda3/condabin:" + os.environ["PATH"]
+os.environ["PATH"] = "/nethome/srho31/flash/miniconda3/envs/isaac2/bin:/nethome/srho31/flash/miniconda3/condabin:" + os.environ["PATH"]
+os.environ["PATH"] = "/home/srho31/miniconda3/envs/isaac/bin:/home/srho31/miniconda3/condabin:" + os.environ["PATH"]
+
 import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import get_args, task_registry

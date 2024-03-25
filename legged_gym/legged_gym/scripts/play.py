@@ -47,6 +47,11 @@ from legged_gym.debugger import break_into_debugger
 import numpy as np
 import torch
 
+import os
+os.environ["PATH"] = "/home/serho/miniconda3/envs/isaac2/bin:/home/serho/miniconda3/condabin:" + os.environ["PATH"]
+os.environ["PATH"] = "/home/srho31/miniconda3/envs/isaac/bin:/home/srho31/miniconda3/condabin:" + os.environ["PATH"]
+
+
 def create_recording_camera(gym, env_handle,
         resolution= (1920, 1080),
         h_fov= 86,
@@ -193,6 +198,9 @@ def play(args):
     policy = ppo_runner.get_inference_policy(device=env.device)
     ### get obs_slice to read the obs
     # obs_slice = get_obs_slice(env.obs_segments, "engaging_block")
+
+    if train_cfg.algorithm.add_skill_discovery_loss:
+        env.set_actor_in_env(ppo_runner.alg.actor_critic)
     
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:

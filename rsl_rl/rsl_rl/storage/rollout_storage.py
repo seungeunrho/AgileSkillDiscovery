@@ -51,8 +51,11 @@ class RolloutStorage:
         def clear(self):
             self.__init__()
 
+
     MiniBatch = namedtuple("MiniBatch", [
         "obs",
+        "next_obs",
+        "dones",
         "critic_obs",
         "actions",
         "values",
@@ -65,8 +68,8 @@ class RolloutStorage:
         "masks",
     ])
 
-    def __init__(self, num_envs, num_transitions_per_env, obs_shape, privileged_obs_shape, actions_shape, device='cpu'):
-
+    def __init__(self, num_envs, num_transitions_per_env, obs_shape, privileged_obs_shape, actions_shape, device='cpu', next_state=False):
+        self.need_next_state = next_state
         self.device = device
 
         self.obs_shape = obs_shape
@@ -75,6 +78,9 @@ class RolloutStorage:
 
         # Core
         self.observations = torch.zeros(num_transitions_per_env, num_envs, *obs_shape, device=self.device)
+        if self.need_next_state:
+            self.next_observations = torch.zeros(num_transitions_per_env, num_envs, *obs_shape, device=self.device)
+
         if privileged_obs_shape[0] is not None:
             self.privileged_observations = torch.zeros(num_transitions_per_env, num_envs, *privileged_obs_shape, device=self.device)
         else:
@@ -104,6 +110,8 @@ class RolloutStorage:
         if self.step >= self.num_transitions_per_env:
             raise AssertionError("Rollout buffer overflow")
         self.observations[self.step].copy_(transition.observations)
+        if self.need_next_state:
+            self.next_observations[self.step].copy_(transition.next_observations)
         if self.privileged_observations is not None: self.privileged_observations[self.step].copy_(transition.critic_observations)
         self.actions[self.step].copy_(transition.actions)
         self.rewards[self.step].copy_(transition.rewards.view(-1, 1))
@@ -165,6 +173,8 @@ class RolloutStorage:
         indices = torch.randperm(num_mini_batches*mini_batch_size, requires_grad=False, device=self.device)
 
         observations = self.observations.flatten(0, 1)
+        if self.need_next_state:
+            next_observations = self.next_observations.flatten(0,1)
         if self.privileged_observations is not None:
             critic_observations = self.privileged_observations.flatten(0, 1)
         else:
@@ -186,6 +196,8 @@ class RolloutStorage:
                 batch_idx = indices[start:end]
 
                 obs_batch = observations[batch_idx]
+                if self.need_next_state:
+                    next_obs_batch = next_observations[batch_idx]
                 critic_observations_batch = critic_observations[batch_idx]
                 actions_batch = actions[batch_idx]
                 target_values_batch = values[batch_idx]
@@ -194,10 +206,20 @@ class RolloutStorage:
                 advantages_batch = advantages[batch_idx]
                 old_mu_batch = old_mu[batch_idx]
                 old_sigma_batch = old_sigma[batch_idx]
-                yield RolloutStorage.MiniBatch(
-                    obs_batch, critic_observations_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, \
-                    old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None,
-                )
+
+
+                if self.need_next_state:
+                    dones = self.dones.flatten(0,1)[batch_idx]
+                    yield RolloutStorage.MiniBatch(
+                        obs_batch, next_obs_batch, dones.flatten(0, 1), critic_observations_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, \
+                        old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None,
+                    )
+
+                else:
+                    yield RolloutStorage.MiniBatch(
+                        obs_batch, critic_observations_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, \
+                        old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None,
+                    )
 
     # for RNNs only
     def reccurent_mini_batch_generator(self, num_mini_batches, num_epochs=8):

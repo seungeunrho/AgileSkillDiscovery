@@ -94,11 +94,9 @@ class A1TiltCfgPPO( A1FieldCfgPPO ):
         ("_tiltMax{:.2f}".format(A1TiltCfg.terrain.BarrierTrack_kwargs["tilt"]["width"][1])),
         ("_virtual" if A1TiltCfg.terrain.BarrierTrack_kwargs["virtual_terrain"] else ""),
         ])
-        resume = True
+        resume = False
         load_run = "{Your traind walking model directory}"
         load_run = "{Your virtual terrain model directory}"
-        load_run = "Aug17_11-13-14_WalkingBase_pEnergySubsteps2e-5_aScale0.5"
-        load_run = "Aug23_22-03-41_Skilltilt_pPenV3e-3_pPenD3e-3_tiltMax0.40_virtual"
         max_iterations = 20000
         save_interval = 500
     

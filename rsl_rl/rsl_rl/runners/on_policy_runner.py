@@ -70,6 +70,9 @@ class OnPolicyRunner:
         # init storage and model
         self.alg.init_storage(self.env.num_envs, self.num_steps_per_env, [self.env.num_obs], [self.env.num_privileged_obs], [self.env.num_actions])
 
+        if self.alg_cfg['add_skill_discovery_loss']:
+            self.env.set_actor_in_env(self.alg.actor_critic)
+
         # Log
         self.log_dir = log_dir
         self.writer = None
@@ -145,7 +148,11 @@ class OnPolicyRunner:
         obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
         critic_obs = privileged_obs if privileged_obs is not None else obs
         obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
-        self.alg.process_env_step(rewards, dones, infos)
+
+        if self.alg_cfg['add_skill_discovery_loss']:
+            self.alg.process_env_step(obs, rewards, dones, infos)
+        else:
+            self.alg.process_env_step(rewards, dones, infos)
         return obs, critic_obs, rewards, dones, infos
 
     def log(self, locs, width=80, pad=35):

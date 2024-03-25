@@ -55,6 +55,9 @@ class PPO:
                  schedule="fixed",
                  desired_kl=0.01,
                  device='cpu',
+                 add_skill_discovery_loss=False,
+                 add_next_state=False,
+                 skill_reward_coef=0.0,
                  ):
 
         self.device = device

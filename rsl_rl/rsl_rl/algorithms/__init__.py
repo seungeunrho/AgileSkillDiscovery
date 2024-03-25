@@ -29,4 +29,5 @@
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
 from .ppo import PPO
+from .ppo_skill import PPOMetra
 from .tppo import TPPO
