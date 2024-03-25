@@ -14,6 +14,19 @@ Conference on Robot Learning (CoRL) 2023, **Oral**, **Best Systems Paper Award F
   <img src="images/teaser.jpeg" width="80%"/>
 </p>
 
+
+
+## Usage
+```bash
+# for training metra
+python legged_gym/scripts/train.py --headless --task=a1_tilt_metra
+
+# for playing
+python legged_gym/scripts/play.py --task=a1_tilt_metra --load_run={folder_path} --checkpoint=-1 
+
+```
+
+
 ## Repository Structure ##
 * `legged_gym`: contains the isaacgym environment and config files.
     - `legged_gym/legged_gym/envs/a1/`: contains all the training config files.
