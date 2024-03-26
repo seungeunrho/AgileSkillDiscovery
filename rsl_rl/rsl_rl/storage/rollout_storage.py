@@ -52,10 +52,24 @@ class RolloutStorage:
             self.__init__()
 
 
-    MiniBatch = namedtuple("MiniBatch", [
+    MiniBatchMetra = namedtuple("MiniBatch", [
         "obs",
         "next_obs",
         "dones",
+        "critic_obs",
+        "actions",
+        "values",
+        "advantages",
+        "returns",
+        "old_actions_log_prob",
+        "old_mu",
+        "old_sigma",
+        "hid_states",
+        "masks",
+    ])
+
+    MiniBatch = namedtuple("MiniBatch", [
+        "obs",
         "critic_obs",
         "actions",
         "values",
@@ -210,7 +224,7 @@ class RolloutStorage:
 
                 if self.need_next_state:
                     dones = self.dones.flatten(0,1)[batch_idx]
-                    yield RolloutStorage.MiniBatch(
+                    yield RolloutStorage.MiniBatchMetra(
                         obs_batch, next_obs_batch, dones.flatten(0, 1), critic_observations_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, \
                         old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None,
                     )

@@ -75,6 +75,8 @@ class A1TiltCfg( A1FieldCfg ):
 
 class A1TiltCfgPPO( A1FieldCfgPPO ):
     class algorithm( A1FieldCfgPPO.algorithm ):
+        add_skill_discovery_loss = False
+        add_next_state = False
         entropy_coef = 0.0
         clip_min_std = 0.2
     
