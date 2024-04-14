@@ -91,3 +91,5 @@ task_registry.register( "go1_tilt", LeggedRobotNoisy, Go1TiltCfg(), Go1TiltCfgPP
 
 from .a1.a1_tilt_metra_config import A1TiltMetraCfg, A1TiltMetraCfgPPO
 task_registry.register( "a1_tilt_metra", LeggedRobotMetra, A1TiltMetraCfg(), A1TiltMetraCfgPPO() )
+from .a1.a1_field_metra_config import A1FieldMetraCfg, A1FieldMetraCfgPPO
+task_registry.register( "a1_field_metra", LeggedRobotMetra, A1FieldMetraCfg(), A1FieldMetraCfgPPO() )

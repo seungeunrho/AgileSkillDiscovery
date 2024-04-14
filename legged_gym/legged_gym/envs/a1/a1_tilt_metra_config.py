@@ -13,6 +13,7 @@ class A1TiltMetraCfg(A1TiltCfg):
 
     class env(A1TiltCfg.env):
         skill_dim = 2
+        phi_start_dim = 0
         phi_input_dim = 6
         sample_skill = True
         obs_components = [
