@@ -220,7 +220,7 @@ class PolicyExporterLSTM(torch.nn.Module):
         self.cell_state[:] = c
         return self.actor(out.squeeze(0))
 
-    @torch.jit.export
+    # @torch.jit.export
     def reset_memory(self):
         self.hidden_state[:] = 0.
         self.cell_state[:] = 0.

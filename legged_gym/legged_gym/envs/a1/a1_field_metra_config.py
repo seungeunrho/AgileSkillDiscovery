@@ -1,10 +1,11 @@
 import numpy as np
 import os.path as osp
-from legged_gym.envs.a1.a1_config import A1RoughCfg, A1RoughCfgPPO
-from legged_fym.envs.a1.a1_field_config import A1FieldCfg, A1FieldCfgPPO
+from legged_gym.envs.a1.a1_config import A1RoughCfg, A1RoughCfgPPO, A1PlaneCfg
+from legged_gym.envs.a1.a1_field_config import A1FieldCfg, A1FieldCfgPPO
 
 class A1FieldMetraCfg(A1FieldCfg):
     class env(A1FieldCfg.env):
+        num_envs = 1
         skill_dim = 2
         phi_start_dim = 0
         phi_input_dim = 6
@@ -13,12 +14,23 @@ class A1FieldMetraCfg(A1FieldCfg):
             "base_pose",
             "proprioception",  # 48
             # "height_measurements", # 187
-
-            "robot_config",
-            "engaging_block",
-            "sidewall_distance",
             "skills",
         ]
+    
+    class terrain(A1FieldCfg.terrain):
+        TerrainPerlin_kwargs = dict(
+            # zScale= [0.08, 0.15],
+            zScale= 0.15, # Use a constant zScale for training a walk policy
+            frequency= 10,
+        )
+    
+    class domain_rand(A1FieldCfg.domain_rand):
+        randomize_motor = False
+        leg_motor_strength_range = [1.0, 1.0]
+        randomize_base_mass = False
+        added_mass_range = [2.0, 2.0]
+        randomize_friction = False
+        friction_range = [1., 1.]
     
     class rewards(A1FieldCfg.rewards):
         class scales:
@@ -30,7 +42,7 @@ class A1FieldMetraCfg(A1FieldCfg):
             # penalty for hardware safety
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 100.0
+            diversity = 1.0
         soft_dof_pos_limit = 0.01
 
 class A1FieldMetraCfgPPO(A1FieldCfgPPO):

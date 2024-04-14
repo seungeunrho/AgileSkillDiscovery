@@ -23,7 +23,7 @@ import ros_numpy
 def resize2d(img, size):
     return (F.adaptive_avg_pool2d(Variable(img), size)).data
 
-@torch.jit.script
+# @torch.jit.script
 def quat_rotate_inverse(q, v):
     shape = q.shape
     q_w = q[:, -1]

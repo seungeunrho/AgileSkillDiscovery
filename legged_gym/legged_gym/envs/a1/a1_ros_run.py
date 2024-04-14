@@ -90,7 +90,7 @@ def load_walk_policy(env, model_dir):
             action_rescale_ratio = 1.0
         memory_module = model.memory_a
         actor_mlp = model.actor
-        @torch.jit.script
+        # @torch.jit.script
         def policy_run(obs):
             recurrent_embedding = memory_module(obs)
             actions = actor_mlp(recurrent_embedding.squeeze(0))
@@ -248,7 +248,7 @@ def main(args):
         # extract and build the torch ScriptFunction
         memory_module = model.memory_a
         actor_mlp = model.actor
-        @torch.jit.script
+        # @torch.jit.script
         def policy(obs):
             recurrent_embedding = memory_module(obs)
             actions = actor_mlp(recurrent_embedding.squeeze(0))
@@ -308,7 +308,7 @@ def main(args):
         visual_encoder = model.visual_encoder
         memory_module = model.memory_a
         actor_mlp = model.actor
-        @torch.jit.script
+        # @torch.jit.script
         def policy(observations: torch.Tensor, obs_start: int, obs_stop: int, obs_shape: Tuple[int, int, int]):
             visual_latent = visual_encoder(
                 observations[..., obs_start:obs_stop].reshape(-1, *obs_shape)
