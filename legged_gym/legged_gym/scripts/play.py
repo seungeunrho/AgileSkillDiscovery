@@ -27,6 +27,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
+import os
+os.environ["PATH"] = "/home/serho/miniconda3/envs/parkour/bin:/home/serho/miniconda3/condabin:" + os.environ["PATH"]
+os.environ["PATH"] = "/home/srho31/miniconda3/envs/isaac/bin:/home/srho31/miniconda3/condabin:" + os.environ["PATH"]
+
 
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from collections import OrderedDict
@@ -46,10 +50,6 @@ from legged_gym.debugger import break_into_debugger
 
 import numpy as np
 import torch
-
-import os
-os.environ["PATH"] = "/home/serho/miniconda3/envs/isaac2/bin:/home/serho/miniconda3/condabin:" + os.environ["PATH"]
-os.environ["PATH"] = "/home/srho31/miniconda3/envs/isaac/bin:/home/srho31/miniconda3/condabin:" + os.environ["PATH"]
 
 
 def create_recording_camera(gym, env_handle,
@@ -106,9 +106,9 @@ def play(args):
     env_cfg.terrain.curriculum = False
     env_cfg.terrain.BarrierTrack_kwargs["options"] = [
         # "crawl",
-        "jump",
+        # "jump",
         # "leap",
-        # "tilt",
+        "tilt",
     ]
     if "one_obstacle_per_track" in env_cfg.terrain.BarrierTrack_kwargs.keys():
         env_cfg.terrain.BarrierTrack_kwargs.pop("one_obstacle_per_track")
@@ -167,10 +167,7 @@ def play(args):
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
-    env.reset()
-    print("terrain_levels:", env.terrain_levels.float().mean(), env.terrain_levels.float().max(), env.terrain_levels.float().min())
-    obs = env.get_observations()
-    critic_obs = env.get_privileged_observations()
+
     # register debugging options to manually trigger disruption
     env.gym.subscribe_viewer_keyboard_event(env.viewer, isaacgym.gymapi.KEY_P, "push_robot")
     env.gym.subscribe_viewer_keyboard_event(env.viewer, isaacgym.gymapi.KEY_L, "press_robot")
@@ -201,6 +198,12 @@ def play(args):
 
     if train_cfg.algorithm.add_skill_discovery_loss:
         env.set_actor_in_env(ppo_runner.alg.actor_critic)
+
+    env.reset()
+    print("terrain_levels:", env.terrain_levels.float().mean(), env.terrain_levels.float().max(),
+          env.terrain_levels.float().min())
+    obs = env.get_observations()
+    critic_obs = env.get_privileged_observations()
     
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
