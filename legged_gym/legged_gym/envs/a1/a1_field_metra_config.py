@@ -5,10 +5,10 @@ from legged_gym.envs.a1.a1_field_config import A1FieldCfg, A1FieldCfgPPO
 
 class A1FieldMetraCfg(A1FieldCfg):
     class env(A1FieldCfg.env):
-        num_envs = 1
+        num_envs = 12
         skill_dim = 2
         phi_start_dim = 0
-        phi_input_dim = 6
+        phi_input_dim = 2
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -49,6 +49,7 @@ class A1FieldMetraCfgPPO(A1FieldCfgPPO):
     class algorithm(A1FieldCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
     
     class runner(A1FieldCfgPPO.runner):
         policy_class_name = "ActorCriticMetra"
@@ -59,6 +60,6 @@ class A1FieldMetraCfgPPO(A1FieldCfgPPO):
         resume = False
     
     class policy(A1FieldCfgPPO.policy):
-        phi_input_dim = 6
+        phi_input_dim = 2
         skill_dim = 2
     
