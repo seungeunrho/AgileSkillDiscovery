@@ -194,12 +194,13 @@ class RolloutStorage:
                 next_values = self.values[step + 1]
                 next_div_values = self.div_values[step + 1]
             next_is_not_terminal = 1.0 - self.dones[step].float()
-            delta = self.rewards[step] + next_is_not_terminal * gamma * next_values - self.values[step]
-            advantage = delta + next_is_not_terminal * gamma * lam * advantage
-            self.returns[step] = advantage + self.values[step]
-
+            delta     = self.rewards[step]     + next_is_not_terminal * gamma * next_values     - self.values[step]
             div_delta = self.div_rewards[step] + next_is_not_terminal * gamma * next_div_values - self.div_values[step]
+
+            advantage     = delta     + next_is_not_terminal * gamma * lam * advantage
             div_advantage = div_delta + next_is_not_terminal * gamma * lam * div_advantage
+
+            self.returns[step] = advantage + self.values[step]
             self.div_returns[step] = div_advantage + self.div_values[step]
 
 

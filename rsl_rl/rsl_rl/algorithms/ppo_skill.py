@@ -61,7 +61,8 @@ class PPOMetra(PPO):
         self.adjustable_kappa = adjustable_kappa
         self.kappa = torch.tensor([0.], dtype=torch.float, device=device)
         if adjustable_kappa:
-            self.prev_grad = torch.zeros(194956, dtype=torch.float, device=device)
+            actor_num_params = sum(p.numel() for p in self.actor_critic.actor.parameters())
+            self.prev_grad = torch.zeros(actor_num_params, dtype=torch.float, device=device)
 
 
 
@@ -76,7 +77,7 @@ class PPOMetra(PPO):
         self.transition.dones = dones
         # Bootstrapping on time outs
         if 'time_outs' in infos:
-            self.transition.rewards += self.gamma * torch.squeeze(self.transition.values * infos['time_outs'].unsqueeze(1).to(self.device), 1)
+            self.transition.rewards     += self.gamma * torch.squeeze(self.transition.values * infos['time_outs'].unsqueeze(1).to(self.device), 1)
             self.transition.div_rewards += self.gamma * torch.squeeze(self.transition.div_values * infos['time_outs'].unsqueeze(1).to(self.device), 1)
 
         # Record the transition
@@ -104,22 +105,6 @@ class PPOMetra(PPO):
         except:
             entropy_batch = None
 
-        # KL
-        if self.desired_kl != None and self.schedule == 'adaptive':
-            with torch.inference_mode():
-                kl = torch.sum(
-                    torch.log(sigma_batch / minibatch.old_sigma + 1.e-5) + (
-                                torch.square(minibatch.old_sigma) + torch.square(minibatch.old_mu - mu_batch)) / (
-                                2.0 * torch.square(sigma_batch)) - 0.5, axis=-1)
-                kl_mean = torch.mean(kl)
-
-                if kl_mean > self.desired_kl * 2.0:
-                    self.learning_rate = max(1e-5, self.learning_rate / 1.5)
-                elif kl_mean < self.desired_kl / 2.0 and kl_mean > 0.0:
-                    self.learning_rate = min(1e-2, self.learning_rate * 1.5)
-
-                for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = self.learning_rate
 
         # Surrogate loss
         ratio = torch.exp(actions_log_prob_batch - torch.squeeze(minibatch.old_actions_log_prob))
@@ -127,6 +112,16 @@ class PPOMetra(PPO):
         surrogate_clipped = -torch.squeeze(adv) * torch.clamp(ratio, 1.0 - self.clip_param,
                                                                                1.0 + self.clip_param)
         surrogate_loss = torch.max(surrogate, surrogate_clipped).mean()
+
+        if self.adjustable_kappa:
+            surrogate_div = -torch.squeeze(minibatch.div_advantages) * ratio
+            surrogate_clipped_div = -torch.squeeze(minibatch.div_advantages) * torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
+            surrogate_loss = torch.max(surrogate_div, surrogate_clipped_div).mean()
+            surrogate_loss.backward(retain_graph=True)
+            actor_grad_div = self._get_actor_grads()
+            for param in self.actor_critic.actor.parameters():
+                param.grad = None
+
 
         # Value function loss
         if self.use_clipped_value_loss:
@@ -145,7 +140,7 @@ class PPOMetra(PPO):
             value_loss = (minibatch.returns - value_batch).pow(2).mean()
             div_value_loss = (minibatch.div_returns - div_value_batch).pow(2).mean()
 
-        value_loss += div_value_loss
+        value_loss = value_loss + self.kappa.item() * div_value_loss
 
         phi_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
         phi_obs = self.actor_critic.discriminator_inference(minibatch.obs)
@@ -181,7 +176,7 @@ class PPOMetra(PPO):
             inter_vars["kl"] = kl
         if self.use_clipped_value_loss:
             inter_vars["value_clipped"] = value_clipped
-        return return_, inter_vars, dict(actions_log_prob_batch=actions_log_prob_batch)
+        return return_, inter_vars, dict(actor_grad_div=actor_grad_div)
 
     def act(self, obs, critic_obs):
         if self.actor_critic.is_recurrent:
@@ -235,7 +230,7 @@ class PPOMetra(PPO):
                 if self.adjustable_kappa:
                     actor_grad = self._get_actor_grads()
                     self.update_kappa(actor_grad)
-                    self.prev_grad.copy_(actor_grad)
+                    self.prev_grad.copy_(stats["actor_grad_div"])
 
                 self.optimizer.step()
             

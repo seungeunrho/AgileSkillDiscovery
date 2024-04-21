@@ -13,8 +13,8 @@ class A1TiltMetraCfg(A1TiltCfg):
 
     class env(A1TiltCfg.env):
         skill_dim = 2
-        phi_start_dim = 0
-        phi_input_dim = 6
+        phi_start_dim = 3
+        phi_input_dim = 3
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -96,6 +96,7 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
     class algorithm(A1TiltCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
 
     class runner(A1TiltCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
@@ -106,5 +107,5 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
         resume = False
 
     class policy(A1TiltCfgPPO.policy):
-        phi_input_dim = 6
+        phi_input_dim = 3
         skill_dim = 2
