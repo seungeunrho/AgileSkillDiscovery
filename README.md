@@ -1,3 +1,6 @@
+## Supplementary Videos
+All the supplementary videos are in here - [Supplementary Videos](supplementary_videos/)
+
 # Robot Parkour Learning #
 Project website: [https://robot-parkour.github.io/](https://robot-parkour.github.io/) <br>
 Authors: 
