@@ -100,6 +100,7 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
     class algorithm(A1TiltCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
 
     class runner(A1TiltCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'

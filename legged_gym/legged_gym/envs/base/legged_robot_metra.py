@@ -1,20 +1,23 @@
 import torch
 from .legged_robot_noisy import LeggedRobotNoisy
-from .legged_robot import LeggedRobot
-import numpy as np
-import torch.nn.functional as F
-from collections import OrderedDict, defaultdict
-
-import torch.nn as nn
-from isaacgym.torch_utils import *
 
 from collections import OrderedDict, defaultdict
-import torch
+
 
 from legged_gym.utils.terrain import get_terrain_cls
 
+from isaacgym.torch_utils import *
+from isaacgym import gymtorch
+
+import torch
+from legged_gym.envs.base.base_task import BaseTask
+
 
 class LeggedRobotMetra(LeggedRobotNoisy):
+    def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
+        super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
+        self.div_rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
+
     def _init_buffers(self):
         super()._init_buffers()
         self.skill_dim = self.cfg.env.skill_dim
@@ -116,3 +119,57 @@ class LeggedRobotMetra(LeggedRobotNoisy):
 
     def _get_skills_obs(self, privileged=False):
         return self.skills
+
+
+    def compute_reward(self):
+        """ Compute rewards
+            Calls each reward function which had a non-zero scale (processed in self._prepare_reward_function())
+            adds each terms to the episode sums and to the total reward
+        """
+        self.rew_buf[:] = 0.
+        self.div_rew_buf[:] = 0.
+        for i in range(len(self.reward_functions)):
+            name = self.reward_names[i]
+            if name == "diversity":
+                div_rew = self.reward_functions[i]() * self.reward_scales[name]
+                self.div_rew_buf += div_rew
+                self.episode_sums[name] += div_rew
+            else:
+                rew = self.reward_functions[i]() * self.reward_scales[name]
+                self.rew_buf += rew
+                self.episode_sums[name] += rew
+        if self.cfg.rewards.only_positive_rewards:
+            self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.)
+        # add termination reward after clipping
+        if "termination" in self.reward_scales:
+            rew = self._reward_termination() * self.reward_scales["termination"]
+            self.rew_buf += rew
+            self.episode_sums["termination"] += rew
+
+
+    def step(self, actions):
+        """ Apply actions, simulate, call self.post_physics_step()
+
+        Args:
+            actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
+        """
+        self.pre_physics_step(actions)
+        # step physics and render each frame
+        self.render()
+        for dec_i in range(self.cfg.control.decimation):
+            self.torques = self._compute_torques(self.actions).view(self.torques.shape)
+            self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.torques))
+            self.gym.simulate(self.sim)
+            if self.device == 'cpu':
+                self.gym.fetch_results(self.sim, True)
+            self.gym.refresh_dof_state_tensor(self.sim)
+            self.post_decimation_step(dec_i)
+        self.post_physics_step()
+
+        # return clipped obs, clipped states (None), rewards, dones and infos
+        clip_obs = self.cfg.normalization.clip_observations
+        self.obs_buf = torch.clip(self.obs_buf, -clip_obs, clip_obs)
+        if self.privileged_obs_buf is not None:
+            self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
+        return self.obs_buf, self.privileged_obs_buf, (self.rew_buf, self.div_rew_buf), self.reset_buf, self.extras
+

@@ -58,6 +58,7 @@ class PPO:
                  add_skill_discovery_loss=False,
                  add_next_state=False,
                  skill_reward_coef=0.0,
+                 adjustable_kappa=False
                  ):
 
         self.device = device

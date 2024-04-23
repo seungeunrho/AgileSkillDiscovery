@@ -41,12 +41,14 @@ class RolloutStorage:
             self.critic_observations = None
             self.actions = None
             self.rewards = None
+            self.div_rewards = None
             self.dones = None
             self.values = None
             self.actions_log_prob = None
             self.action_mean = None
             self.action_sigma = None
             self.hidden_states = None
+            self.div_values = None
         
         def clear(self):
             self.__init__()
@@ -59,8 +61,11 @@ class RolloutStorage:
         "critic_obs",
         "actions",
         "values",
+        "div_values",
         "advantages",
+        "div_advantages",
         "returns",
+        "div_returns",
         "old_actions_log_prob",
         "old_mu",
         "old_sigma",
@@ -94,6 +99,10 @@ class RolloutStorage:
         self.observations = torch.zeros(num_transitions_per_env, num_envs, *obs_shape, device=self.device)
         if self.need_next_state:
             self.next_observations = torch.zeros(num_transitions_per_env, num_envs, *obs_shape, device=self.device)
+            self.div_values = torch.zeros(num_transitions_per_env, num_envs, 1, device=self.device)
+            self.div_advantages = torch.zeros(num_transitions_per_env, num_envs, 1, device=self.device)
+            self.div_returns = torch.zeros(num_transitions_per_env, num_envs, 1, device=self.device)
+            self.div_rewards = torch.zeros(num_transitions_per_env, num_envs, 1, device=self.device)
 
         if privileged_obs_shape[0] is not None:
             self.privileged_observations = torch.zeros(num_transitions_per_env, num_envs, *privileged_obs_shape, device=self.device)
@@ -126,6 +135,8 @@ class RolloutStorage:
         self.observations[self.step].copy_(transition.observations)
         if self.need_next_state:
             self.next_observations[self.step].copy_(transition.next_observations)
+            self.div_values[self.step].copy_(transition.div_values)
+            self.div_rewards[self.step].copy_(transition.div_rewards.view(-1, 1))
         if self.privileged_observations is not None: self.privileged_observations[self.step].copy_(transition.critic_observations)
         self.actions[self.step].copy_(transition.actions)
         self.rewards[self.step].copy_(transition.rewards.view(-1, 1))
@@ -173,6 +184,33 @@ class RolloutStorage:
         self.advantages = self.returns - self.values
         self.advantages = (self.advantages - self.advantages.mean()) / (self.advantages.std() + 1e-8)
 
+    def compute_div_mixed_returns(self, last_values, last_div_values, gamma, lam):
+        advantage, div_advantage = 0., 0.
+        for step in reversed(range(self.num_transitions_per_env)):
+            if step == self.num_transitions_per_env - 1:
+                next_values = last_values
+                next_div_values = last_div_values
+            else:
+                next_values = self.values[step + 1]
+                next_div_values = self.div_values[step + 1]
+            next_is_not_terminal = 1.0 - self.dones[step].float()
+            delta     = self.rewards[step]     + next_is_not_terminal * gamma * next_values     - self.values[step]
+            div_delta = self.div_rewards[step] + next_is_not_terminal * gamma * next_div_values - self.div_values[step]
+
+            advantage     = delta     + next_is_not_terminal * gamma * lam * advantage
+            div_advantage = div_delta + next_is_not_terminal * gamma * lam * div_advantage
+
+            self.returns[step] = advantage + self.values[step]
+            self.div_returns[step] = div_advantage + self.div_values[step]
+
+
+        # Compute and normalize the advantages
+        self.advantages = self.returns - self.values
+        self.advantages = (self.advantages - self.advantages.mean()) / (self.advantages.std() + 1e-8)
+
+        self.div_advantages = self.div_returns - self.div_values
+        self.div_advantages = (self.div_advantages - self.div_advantages.mean()) / (self.div_advantages.std() + 1e-8)
+
     def get_statistics(self):
         done = self.dones
         done[-1] = 1
@@ -189,6 +227,9 @@ class RolloutStorage:
         observations = self.observations.flatten(0, 1)
         if self.need_next_state:
             next_observations = self.next_observations.flatten(0,1)
+            div_returns = self.div_returns.flatten(0, 1)
+            div_advantages = self.div_advantages.flatten(0, 1)
+            div_values = self.div_values.flatten(0, 1)
         if self.privileged_observations is not None:
             critic_observations = self.privileged_observations.flatten(0, 1)
         else:
@@ -212,6 +253,9 @@ class RolloutStorage:
                 obs_batch = observations[batch_idx]
                 if self.need_next_state:
                     next_obs_batch = next_observations[batch_idx]
+                    div_returns_batch = div_returns[batch_idx]
+                    div_advantages_batch = div_advantages[batch_idx]
+                    target_div_values_batch = div_values[batch_idx]
                 critic_observations_batch = critic_observations[batch_idx]
                 actions_batch = actions[batch_idx]
                 target_values_batch = values[batch_idx]
@@ -225,8 +269,10 @@ class RolloutStorage:
                 if self.need_next_state:
                     dones = self.dones.flatten(0,1)[batch_idx]
                     yield RolloutStorage.MiniBatchMetra(
-                        obs_batch, next_obs_batch, dones.flatten(0, 1), critic_observations_batch, actions_batch, target_values_batch, advantages_batch, returns_batch, \
-                        old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, (None, None), None,
+                        obs_batch, next_obs_batch, dones.flatten(0, 1), critic_observations_batch, actions_batch, \
+                        target_values_batch, target_div_values_batch, advantages_batch, div_advantages_batch, \
+                        returns_batch, div_returns_batch, old_actions_log_prob_batch, old_mu_batch, old_sigma_batch, \
+                        (None, None), None,
                     )
 
                 else:

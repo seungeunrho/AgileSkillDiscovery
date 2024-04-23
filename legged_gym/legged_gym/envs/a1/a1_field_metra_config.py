@@ -53,6 +53,7 @@ class A1FieldMetraCfgPPO(A1FieldCfgPPO):
     class algorithm(A1FieldCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
     
     class runner(A1FieldCfgPPO.runner):
         policy_class_name = "ActorCriticMetra"

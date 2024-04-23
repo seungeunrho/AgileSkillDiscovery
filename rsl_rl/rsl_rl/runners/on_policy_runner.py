@@ -115,6 +115,8 @@ class OnPolicyRunner:
                         # Book keeping
                         if 'episode' in infos:
                             ep_infos.append(infos['episode'])
+                        if isinstance(rewards, tuple):
+                            rewards = rewards[0] + rewards[1]
                         cur_reward_sum += rewards
                         cur_episode_length += 1
                         new_ids = (dones > 0).nonzero(as_tuple=False)
@@ -147,13 +149,21 @@ class OnPolicyRunner:
         actions = self.alg.act(obs, critic_obs)
         obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
         critic_obs = privileged_obs if privileged_obs is not None else obs
-        obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
 
         if self.alg_cfg['add_skill_discovery_loss']:
-            self.alg.process_env_step(obs, rewards, dones, infos)
+            obs, critic_obs, (rewards, div_rewards), dones = obs.to(self.device), critic_obs.to(
+                self.device), rewards, dones.to(self.device)
+            rewards = rewards.to(self.device)
+            div_rewards = div_rewards.to(self.device)
+            self.alg.process_env_step(obs, rewards, div_rewards, dones, infos)
+            return obs, critic_obs, (rewards, div_rewards), dones, infos
+
         else:
+            obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(
+                self.device), dones.to(self.device)
             self.alg.process_env_step(rewards, dones, infos)
-        return obs, critic_obs, rewards, dones, infos
+
+            return obs, critic_obs, rewards, dones, infos
 
     def log(self, locs, width=80, pad=35):
         self.tot_timesteps += self.num_steps_per_env * self.env.num_envs
@@ -179,10 +189,11 @@ class OnPolicyRunner:
 
         for k, v in locs["losses"].items():
             self.writer.add_scalar("Loss/" + k, v.item(), self.current_learning_iteration)
-        for k, v in locs["stats"].items():
-            self.writer.add_scalar("Train/" + k, v.item(), self.current_learning_iteration)
+        # for k, v in locs["stats"].items():
+        #     self.writer.add_scalar("Train/" + k, v.item(), self.current_learning_iteration)
         
         self.writer.add_scalar('Loss/learning_rate', self.alg.learning_rate, self.current_learning_iteration)
+        self.writer.add_scalar('Loss/kappa', self.alg.kappa.item(), self.current_learning_iteration)
         self.writer.add_scalar('Policy/mean_noise_std', mean_std.item(), self.current_learning_iteration)
         self.writer.add_scalar('Perf/total_fps', fps, self.current_learning_iteration)
         self.writer.add_scalar('Perf/collection time', locs['collection_time'], self.current_learning_iteration)

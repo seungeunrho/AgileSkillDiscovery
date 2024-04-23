@@ -204,7 +204,7 @@ class A1FieldCfg( A1RoughCfg ):
     class normalization( A1RoughCfg.normalization ):
         class obs_scales( A1RoughCfg.normalization.obs_scales ):
             forward_depth = 1.
-            base_pose = [0., 0., 0., 1., 1., 1.]
+            base_pose = [1., 1., 1., 1., 1., 1.]
             engaging_block = 1.
         """ The following action clip is used for tanh policy activation. """
         # clip_actions_method = "hard"
