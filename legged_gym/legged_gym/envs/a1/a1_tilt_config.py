@@ -15,14 +15,14 @@ class A1TiltCfg( A1FieldCfg ):
         max_init_terrain_level = 2
         border_size = 5
         slope_treshold = 20.
-        curriculum = True
+        curriculum = False
 
         BarrierTrack_kwargs = merge_dict(A1FieldCfg.terrain.BarrierTrack_kwargs, dict(
             options= [
                 "tilt",
             ],
             tilt= dict(
-                width= (0.24, 0.4),
+                width= (0.31, 0.31),
                 depth= (0.4, 1.), # size along the forward axis
                 opening_angle= 0.0, # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height= 0.5,

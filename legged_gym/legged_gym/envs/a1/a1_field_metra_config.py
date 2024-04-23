@@ -5,10 +5,10 @@ from legged_gym.envs.a1.a1_field_config import A1FieldCfg, A1FieldCfgPPO
 
 class A1FieldMetraCfg(A1FieldCfg):
     class env(A1FieldCfg.env):
-        num_envs = 1
+        num_envs = 4096
         skill_dim = 2
         phi_start_dim = 0
-        phi_input_dim = 6
+        phi_input_dim = 2
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -35,15 +35,19 @@ class A1FieldMetraCfg(A1FieldCfg):
     class rewards(A1FieldCfg.rewards):
         class scales:
             tracking_ang_vel = 0.0
-            world_vel_l2norm = -1.
+            world_vel_l2norm = 0.0
             legs_energy_substeps = -2e-5
             legs_energy = -0.
             alive = 2.
             # penalty for hardware safety
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 1.0
+            diversity = 100.0
         soft_dof_pos_limit = 0.01
+    
+    class normalization(A1FieldCfg.normalization):
+        class obs_scales(A1FieldCfg.normalization.obs_scales):
+            base_pose = [1., 1., 1., 1., 1., 1.]
 
 class A1FieldMetraCfgPPO(A1FieldCfgPPO):
     class algorithm(A1FieldCfgPPO.algorithm):
@@ -59,6 +63,6 @@ class A1FieldMetraCfgPPO(A1FieldCfgPPO):
         resume = False
     
     class policy(A1FieldCfgPPO.policy):
-        phi_input_dim = 6
+        phi_input_dim = 2
         skill_dim = 2
     

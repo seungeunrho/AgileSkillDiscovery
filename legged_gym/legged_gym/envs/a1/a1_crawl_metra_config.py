@@ -1,9 +1,9 @@
 import numpy as np
-from legged_gym.envs.a1.a1_tilt_config import A1TiltCfg, A1TiltCfgPPO
+from legged_gym.envs.a1.a1_crawl_config import A1CrawlCfg, A1CrawlCfgPPO
 from legged_gym.utils.helpers import merge_dict
 
 
-class A1TiltMetraCfg(A1TiltCfg):
+class A1CrawlMetraCfg(A1CrawlCfg):
     #### uncomment this to train non-virtual terrain
     # class sensor( A1FieldCfg.sensor ):
     #     class proprioception( A1FieldCfg.sensor.proprioception ):
@@ -11,10 +11,10 @@ class A1TiltMetraCfg(A1TiltCfg):
     #         latency_range = [0.04-0.0025, 0.04+0.0075]
     #### uncomment the above to train non-virtual terrain
 
-    class env(A1TiltCfg.env):
+    class env(A1CrawlCfg.env):
         skill_dim = 2
-        phi_start_dim = 3
-        phi_input_dim = 3
+        phi_start_dim = 2
+        phi_input_dim = 1
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -27,37 +27,37 @@ class A1TiltMetraCfg(A1TiltCfg):
             "skills",
         ]
 
-    class terrain(A1TiltCfg.terrain):
+    class terrain( A1CrawlCfg.terrain ):
         max_init_terrain_level = 2
         border_size = 5
         slope_treshold = 20.
         curriculum = False
 
-        BarrierTrack_kwargs = merge_dict(A1TiltCfg.terrain.BarrierTrack_kwargs, dict(
-            options=[
-                "tilt",
+        BarrierTrack_kwargs = merge_dict(A1CrawlCfg.terrain.BarrierTrack_kwargs, dict(
+            options= [
+                "crawl",
             ],
-            tilt=dict(
-                width=(0.31, 0.31),
-                depth=(0.4, 1.),  # size along the forward axis
-                opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
-                wall_height=0.5,
+            track_block_length= 1.6,
+            crawl= dict(
+                height= (0.3, 0.3),
+                depth= (0.1, 0.6), # size along the forward axis
+                wall_height= 0.6,
+                no_perlin_at_obstacle= False,
             ),
-            virtual_terrain=False,  # Change this to False for real terrain
-            no_perlin_threshold=0.06,
+            virtual_terrain= False, # Change this to False for real terrain
         ))
 
-        TerrainPerlin_kwargs = merge_dict(A1TiltCfg.terrain.TerrainPerlin_kwargs, dict(
-            zScale=[0.05, 0.1],
+        TerrainPerlin_kwargs = merge_dict(A1CrawlCfg.terrain.TerrainPerlin_kwargs, dict(
+            zScale= 0.1,
         ))
 
-    class commands(A1TiltCfg.commands):
-        class ranges(A1TiltCfg.commands.ranges):
-            lin_vel_x = [0.3, 0.6]
+    class commands(A1CrawlCfg.commands):
+        class ranges(A1CrawlCfg.commands.ranges):
+            lin_vel_x = [0.3, 0.8]
             lin_vel_y = [0.0, 0.0]
             ang_vel_yaw = [0., 0.]
 
-    class termination(A1TiltCfg.termination):
+    class termination(A1CrawlCfg.termination):
         # additional factors that determines whether to terminates the episode
         termination_terms = [
             "roll",
@@ -67,11 +67,11 @@ class A1TiltMetraCfg(A1TiltCfg):
             "out_of_track",
         ]
 
-    class domain_rand(A1TiltCfg.domain_rand):
+    class domain_rand(A1CrawlCfg.domain_rand):
         # push_robots = True # use for virtual training
         push_robots = False  # use for non-virtual training
 
-    class rewards(A1TiltCfg.rewards):
+    class rewards(A1CrawlCfg.rewards):
         class scales:
             tracking_ang_vel = 0.05
             world_vel_l2norm = -1.
@@ -85,30 +85,30 @@ class A1TiltMetraCfg(A1TiltCfg):
 
         only_positive_rewards = False # if true ne
     
-    class normalization(A1TiltCfg.normalization):
-        class obs_scales(A1TiltCfg.normalization.obs_scales):
+    class normalization(A1CrawlCfg.normalization):
+        class obs_scales(A1CrawlCfg.normalization.obs_scales):
             base_pose = [1., 1., 1., 1., 1., 1.]
 
-    class curriculum(A1TiltCfg.curriculum):
+    class curriculum(A1CrawlCfg.curriculum):
         penetrate_volume_threshold_harder = 4000
         penetrate_volume_threshold_easier = 10000
         penetrate_depth_threshold_harder = 100
         penetrate_depth_threshold_easier = 300
 
 
-class A1TiltMetraCfgPPO(A1TiltCfgPPO):
-    class algorithm(A1TiltCfgPPO.algorithm):
+class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
+    class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
 
-    class runner(A1TiltCfgPPO.runner):
+    class runner(A1CrawlCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
-        experiment_name = 'a1_tilt_metra'
+        experiment_name = 'a1_crawl_metra'
         algorithm_class_name = 'PPOMetra'
         max_iterations = 200000  # number of policy updates
         save_interval = 1000
         resume = False
 
-    class policy(A1TiltCfgPPO.policy):
-        phi_input_dim = 3
+    class policy(A1CrawlCfgPPO.policy):
+        phi_input_dim = 1
         skill_dim = 2

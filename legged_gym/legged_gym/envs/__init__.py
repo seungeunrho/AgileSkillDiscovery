@@ -93,3 +93,7 @@ from .a1.a1_tilt_metra_config import A1TiltMetraCfg, A1TiltMetraCfgPPO
 task_registry.register( "a1_tilt_metra", LeggedRobotMetra, A1TiltMetraCfg(), A1TiltMetraCfgPPO() )
 from .a1.a1_field_metra_config import A1FieldMetraCfg, A1FieldMetraCfgPPO
 task_registry.register( "a1_field_metra", LeggedRobotMetra, A1FieldMetraCfg(), A1FieldMetraCfgPPO() )
+from .a1.a1_crawl_metra_config import A1CrawlMetraCfg, A1CrawlMetraCfgPPO
+task_registry.register( "a1_crawl_metra", LeggedRobotMetra, A1CrawlMetraCfg(), A1CrawlMetraCfgPPO() )
+from .a1.a1_leap_metra_config import A1LeapMetraCfg, A1LeapMetraCfgPPO
+task_registry.register( "a1_leap_metra", LeggedRobotMetra, A1LeapMetraCfg(), A1LeapMetraCfgPPO() )
