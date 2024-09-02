@@ -94,7 +94,9 @@ class LeggedRobotMetra(LeggedRobotNoisy):
 
     def _reward_diversity(self):
         with torch.no_grad():
-            phi_s_prime = self.actor_critic.discriminator_inference(self.obs_buf[:, self.phi_start_dim : self.phi_start_dim + self.phi_input_dim])
+            # phi_s_prime = self.actor_critic.discriminator_inference(self.obs_buf[:, self.phi_start_dim : self.phi_start_dim + self.phi_input_dim])
+            phi_s_prime = self.actor_critic.discriminator_inference(self.obs_buf)
+
             phi_s = self.actor_critic.discriminator_inference(self.prev_skill_obs_buf)
             int_rew = (phi_s_prime - phi_s) * self.skills
             int_rew = torch.sum(int_rew, dim=-1)
