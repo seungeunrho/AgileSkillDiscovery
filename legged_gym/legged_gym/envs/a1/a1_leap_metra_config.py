@@ -13,8 +13,8 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
     class env(A1LeapCfg.env):
         skill_dim = 2
-        phi_start_dim = 0
-        phi_input_dim = 6
+        phi_start_dim = 2
+        phi_input_dim = 1
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -38,7 +38,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
                 "leap",
             ],
             leap= dict(
-                length= (1.0, 1.0),
+                length= (0.2, 1.0),
                 depth= (0.4, 0.8),
                 height= 0.2,
             ),
@@ -80,7 +80,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
             penetrate_volume = 0. #-4e-3
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 100.0
+            diversity = 10.0
         
         only_positive_rewards = False
     
@@ -99,6 +99,7 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
     
     class runner( A1LeapCfgPPO.runner ):
         policy_class_name = 'ActorCriticMetra'
@@ -109,6 +110,6 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
         resume = False
     
     class policy(A1LeapCfgPPO.policy):
-        phi_input_dim = 6
+        phi_input_dim = 1
         skill_dim = 2
     

@@ -105,10 +105,10 @@ def play(args):
         env_cfg.terrain.num_cols = 1
     env_cfg.terrain.curriculum = False
     env_cfg.terrain.BarrierTrack_kwargs["options"] = [
-        # "crawl",
+        "crawl",
         # "jump",
         # "leap",
-        "tilt",
+        # "tilt",
     ]
     if "one_obstacle_per_track" in env_cfg.terrain.BarrierTrack_kwargs.keys():
         env_cfg.terrain.BarrierTrack_kwargs.pop("one_obstacle_per_track")

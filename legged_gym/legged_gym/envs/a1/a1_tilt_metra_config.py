@@ -38,7 +38,7 @@ class A1TiltMetraCfg(A1TiltCfg):
                 "tilt",
             ],
             tilt=dict(
-                width=(0.31, 0.31),
+                width=(0.38, 0.38),
                 depth=(0.4, 1.),  # size along the forward axis
                 opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height=0.5,
@@ -81,7 +81,7 @@ class A1TiltMetraCfg(A1TiltCfg):
             penetrate_volume = 0.#-3e-3
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 100.0
+            diversity = 0.1
 
         only_positive_rewards = False # if true ne
     

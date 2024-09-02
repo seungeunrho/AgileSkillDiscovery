@@ -14,7 +14,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
     class env(A1CrawlCfg.env):
         skill_dim = 2
         phi_start_dim = 2
-        phi_input_dim = 1
+        phi_input_dim = 4
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -39,7 +39,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
             ],
             track_block_length= 1.6,
             crawl= dict(
-                height= (0.3, 0.3),
+                height= (0.3, 0.4),
                 depth= (0.1, 0.6), # size along the forward axis
                 wall_height= 0.6,
                 no_perlin_at_obstacle= False,
@@ -81,7 +81,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
             penetrate_volume = 0.#-3e-3
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 100.0
+            diversity = 10.0
 
         only_positive_rewards = False # if true ne
     
@@ -100,6 +100,7 @@ class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
+        adjustable_kappa = True
 
     class runner(A1CrawlCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
@@ -110,5 +111,5 @@ class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
         resume = False
 
     class policy(A1CrawlCfgPPO.policy):
-        phi_input_dim = 1
+        phi_input_dim = 4
         skill_dim = 2

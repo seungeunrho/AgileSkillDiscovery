@@ -22,7 +22,7 @@ class A1LeapCfg( A1FieldCfg ):
                 "leap",
             ],
             leap= dict(
-                length= (0.2, 1.0),
+                length= (0.2, 0.6),
                 depth= (0.4, 0.8),
                 height= 0.2,
             ),
