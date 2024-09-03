@@ -21,10 +21,10 @@ class LeggedRobotMetra(LeggedRobotNoisy):
     def _init_buffers(self):
         super()._init_buffers()
         self.skill_dim = self.cfg.env.skill_dim
-        self.phi_start_dim = self.cfg.env.phi_start_dim
-        self.phi_input_dim = self.cfg.env.phi_input_dim
+        # self.phi_start_dim = self.cfg.env.phi_start_dim
+        # self.phi_input_dim = self.cfg.env.phi_input_dim
         self.skills = torch.zeros(self.num_envs, self.skill_dim, device=self.device, dtype=torch.float, requires_grad=False)
-        self.prev_skill_obs_buf = torch.zeros(self.num_envs, self.phi_input_dim, device=self.device, dtype=torch.float, requires_grad=False)
+        self.prev_skill_obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float, requires_grad=False)
 
         # self.sample_skill = self.cfg.env.sample_skill
 
@@ -82,7 +82,9 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         return segments
 
     def compute_observations(self):
-        self.prev_skill_obs_buf[:] = self.obs_buf[:, self.phi_start_dim : self.phi_start_dim + self.phi_input_dim]
+        # self.prev_skill_obs_buf[:] = self.obs_buf[:, self.phi_start_dim : self.phi_start_dim + self.phi_input_dim]
+        self.prev_skill_obs_buf[:] = self.obs_buf[:]
+
         super().compute_observations()
 
     def set_actor_in_env(self, actor_critic):

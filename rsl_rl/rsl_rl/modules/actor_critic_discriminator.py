@@ -74,10 +74,12 @@ class ActorCriticMetra(ActorCritic):
         Normal.set_default_validate_args = False
 
         self.skill_dim = kwargs['skill_dim']
-        self.input_dim = kwargs['phi_input_dim']
+        self.phi_input_dim = kwargs['phi_input_dim']
+        self.phi_start_dim = kwargs['phi_start_dim']
+
 
         discriminator_layers = []
-        discriminator_layers.append(nn.Linear(self.input_dim, discriminator_hidden_dims[0]))
+        discriminator_layers.append(nn.Linear(self.phi_input_dim, discriminator_hidden_dims[0]))
         discriminator_layers.append(activation)
         for l in range(len(actor_hidden_dims)):
             if l == len(actor_hidden_dims) - 1:
@@ -110,7 +112,7 @@ class ActorCriticMetra(ActorCritic):
     #     return self.discriminator(pos_int)
 
     def discriminator_inference(self, observations):
-        return self.discriminator(observations[:, 0:self.input_dim])
+        return self.discriminator(observations[:, self.phi_start_dim:self.phi_start_dim+self.phi_input_dim])
 
     def evaluate(self, critic_observations, **kwargs):
         value = self.critic(critic_observations)

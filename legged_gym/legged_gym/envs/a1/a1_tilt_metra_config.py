@@ -13,8 +13,8 @@ class A1TiltMetraCfg(A1TiltCfg):
 
     class env(A1TiltCfg.env):
         skill_dim = 2
-        phi_start_dim = 3
-        phi_input_dim = 3
+        # phi_start_dim = 3
+        # phi_input_dim = 3
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -38,7 +38,7 @@ class A1TiltMetraCfg(A1TiltCfg):
                 "tilt",
             ],
             tilt=dict(
-                width=(0.38, 0.38),
+                width=(0.42, 0.42),
                 depth=(0.4, 1.),  # size along the forward axis
                 opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height=0.5,
@@ -111,5 +111,6 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
         resume = False
 
     class policy(A1TiltCfgPPO.policy):
+        phi_start_dim = 0
         phi_input_dim = 3
         skill_dim = 2
