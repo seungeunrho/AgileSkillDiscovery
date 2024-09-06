@@ -116,8 +116,8 @@ class PPOMetra(PPO):
         if self.adjustable_kappa:
             surrogate_div = -torch.squeeze(minibatch.div_advantages) * ratio
             surrogate_clipped_div = -torch.squeeze(minibatch.div_advantages) * torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
-            surrogate_loss = torch.max(surrogate_div, surrogate_clipped_div).mean()
-            surrogate_loss.backward(retain_graph=True)
+            surrogate_loss_div = torch.max(surrogate_div, surrogate_clipped_div).mean()
+            surrogate_loss_div.backward(retain_graph=True)
             actor_grad_div = self._get_actor_grads()
             for param in self.actor_critic.actor.parameters():
                 param.grad = None
