@@ -83,7 +83,10 @@ def create_recording_camera(gym, env_handle,
 @torch.no_grad()
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
-    with open(os.path.join("logs", train_cfg.runner.experiment_name, args.load_run, "config.json"), "r") as f:
+    print("max episode length: ",env_cfg.env.episode_length_s)
+    # import ipdb;ipdb.set_trace()
+    # print(os.path.join(LEGGED_GYM_ROOT_DIR, "logs", train_cfg.runner.experiment_name, args.load_run, "config.json"))
+    with open(os.path.join(LEGGED_GYM_ROOT_DIR,"logs", train_cfg.runner.experiment_name, args.load_run, "config.json"), "r") as f:
         d = json.load(f, object_pairs_hook= OrderedDict)
         update_class_from_dict(env_cfg, d, strict= True)
         update_class_from_dict(train_cfg, d, strict= True)
@@ -91,7 +94,8 @@ def play(args):
     # override some parameters for testing
     if env_cfg.terrain.selected == "BarrierTrack":
         env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
-        env_cfg.env.episode_length_s = 20
+        # env_cfg.env.episode_length_s = 5
+        
         env_cfg.terrain.max_init_terrain_level = 0
         env_cfg.terrain.num_rows = 1
         env_cfg.terrain.num_cols = 1
@@ -238,7 +242,9 @@ def play(args):
     for i in range(10*int(env.max_episode_length)):
         if "obs_slice" in locals().keys():
             obs_component = obs[:, obs_slice[0]].reshape(-1, *obs_slice[1])
-            print(obs_component[robot_index])
+            # print(obs_component[robot_index])
+        # print(env.commands)
+        # import ipdb;ipdb.set_trace()
         actions = policy(obs.detach())
         teacher_actions = actions
         obs, critic_obs, rews, dones, infos = env.step(actions.detach())
@@ -345,7 +351,7 @@ def play(args):
 if __name__ == '__main__':
     EXPORT_POLICY = False
     RECORD_FRAMES = False
-    MOVE_CAMERA = True
-    CAMERA_FOLLOW = True
+    MOVE_CAMERA = False
+    CAMERA_FOLLOW = False
     args = get_args()
     play(args)

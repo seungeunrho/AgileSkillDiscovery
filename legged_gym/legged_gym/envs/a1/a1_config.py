@@ -34,7 +34,6 @@ class A1RoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
         use_lin_vel = True
         num_observations = 235 # no measure_heights makes num_obs = 48; with measure_heights makes num_obs 235
-    
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0

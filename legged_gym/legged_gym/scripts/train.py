@@ -31,6 +31,7 @@
 import numpy as np
 import os
 from datetime import datetime
+import wandb
 
 # os.environ["PATH"] = "/home/serho/miniconda3/envs/isaac2/bin:/home/serho/miniconda3/condabin:" + os.environ["PATH"]
 
@@ -46,6 +47,13 @@ import torch
 from legged_gym.debugger import break_into_debugger
 
 def train(args):
+    mode = "online"
+    if not args.debug:
+        wandb.init(project=args.task, name=args.run_name, mode=mode, dir="../../logs", sync_tensorboard=True)
+        # if args.run_name=="go1":
+        wandb.save(LEGGED_GYM_ENVS_DIR + "/"+ "a1/" + args.task + "_config.py", policy="now")
+        wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot_config.py", policy="now")
+        wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot.py", policy="now")
     env, env_cfg = task_registry.make_env(name=args.task, args=args)
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, env_cfg=env_cfg)
     ppo_runner.learn(num_learning_iterations=train_cfg.runner.max_iterations, init_at_random_ep_len=True)
