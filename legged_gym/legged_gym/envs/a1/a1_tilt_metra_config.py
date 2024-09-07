@@ -26,6 +26,7 @@ class A1TiltMetraCfg(A1TiltCfg):
             "sidewall_distance",
             "skills",
         ]
+        episode_length_s=5
 
     class terrain(A1TiltCfg.terrain):
         max_init_terrain_level = 2
@@ -38,7 +39,7 @@ class A1TiltMetraCfg(A1TiltCfg):
                 "tilt",
             ],
             tilt=dict(
-                width=(0.42, 0.42),
+                width=(0.35, 0.35),
                 depth=(0.4, 1.),  # size along the forward axis
                 opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height=0.5,
@@ -71,6 +72,8 @@ class A1TiltMetraCfg(A1TiltCfg):
         # push_robots = True # use for virtual training
         push_robots = False  # use for non-virtual training
 
+    class noise(A1TiltCfg.noise):
+        add_noise=False
     class rewards(A1TiltCfg.rewards):
         class scales:
             tracking_ang_vel = 0.05
@@ -111,6 +114,11 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
         resume = False
 
     class policy(A1TiltCfgPPO.policy):
+        # for x y z
+        # phi_start_dim = 0
+        # phi_input_dim = 3
+        
+        # for r
         phi_start_dim = 0
-        phi_input_dim = 3
+        phi_input_dim = 4
         skill_dim = 2

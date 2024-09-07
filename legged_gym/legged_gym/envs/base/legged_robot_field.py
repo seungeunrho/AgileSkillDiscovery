@@ -521,6 +521,7 @@ class LeggedRobotField(LeggedRobot):
                     getattr(self, "_get_" + k + "_obs")(privileged) * \
                     getattr(self.obs_scales, k, 1.)
                 )
+            # import ipdb;ipdb.set_trace()
         obs = torch.cat(obs, dim= 1)
         return obs
 
