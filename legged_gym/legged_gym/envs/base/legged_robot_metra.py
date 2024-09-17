@@ -134,7 +134,8 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         self.div_rew_buf[:] = 0.
         for i in range(len(self.reward_functions)):
             name = self.reward_names[i]
-            if name == "diversity":
+            
+            if name == "diversity" and self.reward_scales[name]>0:
                 div_rew = self.reward_functions[i]() * self.reward_scales[name]
                 self.div_rew_buf += div_rew
                 self.episode_sums[name] += div_rew

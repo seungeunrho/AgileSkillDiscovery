@@ -13,8 +13,8 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
     class env(A1LeapCfg.env):
         skill_dim = 2
-        phi_start_dim = 2
-        phi_input_dim = 1
+        # phi_start_dim = 2
+        # phi_input_dim = 1
         sample_skill = True
         obs_components = [
             "base_pose",
@@ -26,7 +26,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
             "sidewall_distance",
             "skills",
         ]
-    
+        episode_length_s=20
     class terrain( A1LeapCfg.terrain ):
         max_init_terrain_level = 2
         border_size = 5
@@ -38,7 +38,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
                 "leap",
             ],
             leap= dict(
-                length= (0.2, 1.0),
+                length= (0.45, 0.45),
                 depth= (0.4, 0.8),
                 height= 0.2,
             ),
@@ -52,7 +52,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
     
     class commands( A1LeapCfg.commands ):
         class ranges( A1LeapCfg.commands.ranges ):
-            lin_vel_x = [1.0, 1.5]
+            lin_vel_x =  [1.0, 1.5] #[2.0,3.0]
             lin_vel_y = [0.0, 0.0]
             ang_vel_yaw = [0., 0.]
 
@@ -75,12 +75,12 @@ class A1LeapMetraCfg( A1LeapCfg ):
             tracking_ang_vel = 0.05
             world_vel_l2norm = -1.
             legs_energy_substeps = -1e-6
-            alive = 2.
+            alive = 2 #2.
             penetrate_depth = 0. #-4e-3
             penetrate_volume = 0. #-4e-3
-            exceed_dof_pos_limits = -1e-1
-            exceed_torque_limits_i = -2e-1
-            diversity = 10.0
+            exceed_dof_pos_limits = -2e-1 #-1e-1
+            exceed_torque_limits_i = -5e-1 #-2e-1
+            diversity = 0.1
         
         only_positive_rewards = False
     
@@ -99,7 +99,9 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
-        adjustable_kappa = True
+        adjustable_kappa = False
+        kappa_cap = 1.0
+        kappa = 100
     
     class runner( A1LeapCfgPPO.runner ):
         policy_class_name = 'ActorCriticMetra'
@@ -110,6 +112,13 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
         resume = False
     
     class policy(A1LeapCfgPPO.policy):
+        # for xyz
+        # phi_start_dim = 0
+        # phi_input_dim = 3
+        # skill_dim = 2
+        
+          # for x
+        phi_start_dim = 0
         phi_input_dim = 1
         skill_dim = 2
     

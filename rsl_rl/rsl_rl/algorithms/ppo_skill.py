@@ -35,7 +35,9 @@ class PPOMetra(PPO):
                  add_skill_discovery_loss=False,
                  add_next_state=False,
                  skill_reward_coef=0.0,
-                 adjustable_kappa=False
+                 adjustable_kappa=False,
+                 kappa_cap=1.0,
+                 kappa=0.0
                  ):
         super().__init__(actor_critic,
                  num_learning_epochs=num_learning_epochs,
@@ -56,10 +58,13 @@ class PPOMetra(PPO):
                  add_skill_discovery_loss=add_skill_discovery_loss,
                  add_next_state=add_next_state,
                  skill_reward_coef=skill_reward_coef,
-                 adjustable_kappa=adjustable_kappa
+                 adjustable_kappa=adjustable_kappa,
+                 kappa_cap=kappa_cap,
+                 kappa=kappa
                  )
         self.adjustable_kappa = adjustable_kappa
-        self.kappa = torch.tensor([0.], dtype=torch.float, device=device)
+        self.kappa = torch.tensor([kappa], dtype=torch.float, device=device)
+        self.kappa_cap = kappa_cap
         if adjustable_kappa:
             actor_num_params = sum(p.numel() for p in self.actor_critic.actor.parameters())
             self.prev_grad = torch.zeros(actor_num_params, dtype=torch.float, device=device)
@@ -176,7 +181,10 @@ class PPOMetra(PPO):
             inter_vars["kl"] = kl
         if self.use_clipped_value_loss:
             inter_vars["value_clipped"] = value_clipped
-        return return_, inter_vars, dict(actor_grad_div=actor_grad_div)
+        if self.adjustable_kappa:
+            return return_, inter_vars, dict(actor_grad_div=actor_grad_div)
+        else: 
+            return return_, inter_vars, dict()
 
     def act(self, obs, critic_obs):
         if self.actor_critic.is_recurrent:
@@ -248,8 +256,9 @@ class PPOMetra(PPO):
     def update_kappa(self, actor_grad):
         x = self.prev_grad * actor_grad
         self.kappa += x.sum() * 0.001
-        self.kappa = torch.clamp(self.kappa, min=0., max=1.0)
-
+        self.kappa = torch.clamp(self.kappa, min=0., max=self.kappa_cap)
+        # import ipdb;ipdb.set_trace()
+        # print (self.kappa_cap)
 
     def _get_actor_grads(self):
         grads = []

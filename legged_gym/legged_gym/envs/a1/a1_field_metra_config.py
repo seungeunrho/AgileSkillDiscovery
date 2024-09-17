@@ -16,7 +16,8 @@ class A1FieldMetraCfg(A1FieldCfg):
             # "height_measurements", # 187
             "skills",
         ]
-    
+        
+        
     class terrain(A1FieldCfg.terrain):
         TerrainPerlin_kwargs = dict(
             # zScale= [0.08, 0.15],

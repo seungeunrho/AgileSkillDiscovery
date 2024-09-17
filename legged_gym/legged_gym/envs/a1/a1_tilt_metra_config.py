@@ -26,7 +26,7 @@ class A1TiltMetraCfg(A1TiltCfg):
             "sidewall_distance",
             "skills",
         ]
-        episode_length_s=5
+        episode_length_s=20
 
     class terrain(A1TiltCfg.terrain):
         max_init_terrain_level = 2
@@ -39,7 +39,7 @@ class A1TiltMetraCfg(A1TiltCfg):
                 "tilt",
             ],
             tilt=dict(
-                width=(0.35, 0.35),
+                width=(0.32, 0.32),
                 depth=(0.4, 1.),  # size along the forward axis
                 opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height=0.5,
@@ -72,8 +72,8 @@ class A1TiltMetraCfg(A1TiltCfg):
         # push_robots = True # use for virtual training
         push_robots = False  # use for non-virtual training
 
-    class noise(A1TiltCfg.noise):
-        add_noise=False
+    # class noise(A1TiltCfg.noise):
+    #     add_noise=False
     class rewards(A1TiltCfg.rewards):
         class scales:
             tracking_ang_vel = 0.05
@@ -84,7 +84,7 @@ class A1TiltMetraCfg(A1TiltCfg):
             penetrate_volume = 0.#-3e-3
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 0.1
+            diversity = 0.1 #0.1
 
         only_positive_rewards = False # if true ne
     
@@ -103,8 +103,8 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
     class algorithm(A1TiltCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
-        adjustable_kappa = True
-
+        adjustable_kappa = False
+        kappa = 10
     class runner(A1TiltCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_tilt_metra'
@@ -119,6 +119,6 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
         # phi_input_dim = 3
         
         # for r
-        phi_start_dim = 0
-        phi_input_dim = 4
+        phi_start_dim = 3
+        phi_input_dim = 1
         skill_dim = 2
