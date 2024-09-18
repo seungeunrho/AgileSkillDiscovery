@@ -97,12 +97,8 @@ class PPOMetra(PPO):
         value_batch, div_value_batch = self.actor_critic.evaluate(minibatch.critic_obs, masks=minibatch.masks,
                                                  hidden_states=minibatch.hid_states[1])
 
-
-        if self.adjustable_kappa:
-            adv = minibatch.advantages + self.kappa * minibatch.div_advantages
-        else:
-            adv = minibatch.advantages + minibatch.div_advantages
-
+        adv = minibatch.advantages + self.kappa * minibatch.div_advantages
+        
         mu_batch = self.actor_critic.action_mean
         sigma_batch = self.actor_critic.action_std
         try:
@@ -145,7 +141,7 @@ class PPOMetra(PPO):
             value_loss = (minibatch.returns - value_batch).pow(2).mean()
             div_value_loss = (minibatch.div_returns - div_value_batch).pow(2).mean()
 
-        value_loss = value_loss + self.kappa.item() * div_value_loss
+        value_loss = value_loss + div_value_loss
 
         phi_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
         phi_obs = self.actor_critic.discriminator_inference(minibatch.obs)
