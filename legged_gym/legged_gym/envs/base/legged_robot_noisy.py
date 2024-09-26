@@ -78,6 +78,7 @@ class LeggedRobotNoisy(LeggedRobotField):
                     - self.d_gains * self.dof_vel
             else:
                 raise NotImplementedError
+            # print(self.cfg.control.motor_clip_torque)
             if self.cfg.control.motor_clip_torque:
                 torques = torch.clip(
                     torques,

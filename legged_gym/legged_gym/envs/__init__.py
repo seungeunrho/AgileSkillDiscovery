@@ -34,6 +34,8 @@ from .base.legged_robot import LeggedRobot
 from .base.legged_robot_field import LeggedRobotField
 from .base.legged_robot_noisy import LeggedRobotNoisy
 from .base.legged_robot_metra import LeggedRobotMetra
+from .base.legged_robot_rnd import LeggedRobotRND
+
 from .anymal_c.anymal import Anymal
 from .anymal_c.mixed_terrains.anymal_c_rough_config import AnymalCRoughCfg, AnymalCRoughCfgPPO
 from .anymal_c.flat.anymal_c_flat_config import AnymalCFlatCfg, AnymalCFlatCfgPPO
@@ -97,3 +99,10 @@ from .a1.a1_crawl_metra_config import A1CrawlMetraCfg, A1CrawlMetraCfgPPO
 task_registry.register( "a1_crawl_metra", LeggedRobotMetra, A1CrawlMetraCfg(), A1CrawlMetraCfgPPO() )
 from .a1.a1_leap_metra_config import A1LeapMetraCfg, A1LeapMetraCfgPPO
 task_registry.register( "a1_leap_metra", LeggedRobotMetra, A1LeapMetraCfg(), A1LeapMetraCfgPPO() )
+
+from .a1.a1_tilt_rnd_config import A1TiltRNDCfg, A1TiltRNDCfgPPO
+task_registry.register( "a1_tilt_rnd", LeggedRobotRND, A1TiltRNDCfg(), A1TiltRNDCfgPPO() )
+from .a1.a1_crawl_rnd_config import A1CrawlRNDCfg, A1CrawlRNDCfgPPO
+task_registry.register( "a1_crawl_rnd", LeggedRobotRND, A1CrawlRNDCfg(), A1CrawlRNDCfgPPO() )
+from .a1.a1_leap_rnd_config import A1LeapRNDCfg, A1LeapRNDCfgPPO
+task_registry.register( "a1_leap_rnd", LeggedRobotRND, A1LeapRNDCfg(), A1LeapRNDCfgPPO() )

@@ -3,7 +3,7 @@ from legged_gym.envs.a1.a1_crawl_config import A1CrawlCfg, A1CrawlCfgPPO
 from legged_gym.utils.helpers import merge_dict
 
 
-class A1CrawlMetraCfg(A1CrawlCfg):
+class A1CrawlRNDCfg(A1CrawlCfg):
     #### uncomment this to train non-virtual terrain
     # class sensor( A1FieldCfg.sensor ):
     #     class proprioception( A1FieldCfg.sensor.proprioception ):
@@ -15,7 +15,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
         skill_dim = 2
         # phi_start_dim = 2
         # phi_input_dim = 4
-        sample_skill = True
+        # sample_skill = True
         obs_components = [
             "base_pose",
             "proprioception",  # 48
@@ -24,7 +24,6 @@ class A1CrawlMetraCfg(A1CrawlCfg):
             "robot_config",
             "engaging_block",
             "sidewall_distance",
-            "skills",
         ]
         episode_length_s=20
     class terrain( A1CrawlCfg.terrain ):
@@ -73,14 +72,14 @@ class A1CrawlMetraCfg(A1CrawlCfg):
 
     class rewards(A1CrawlCfg.rewards):
         class scales:
-            tracking_ang_vel = 0.05*10
-            world_vel_l2norm = -1.0*10
-            legs_energy_substeps = -1e-5*10
-            alive = 2.0*10
+            tracking_ang_vel = 0.05
+            world_vel_l2norm = -1.
+            legs_energy_substeps = -1e-5
+            alive = 2.
             penetrate_depth = 0.#-3e-3
             penetrate_volume = 0.#-3e-3
-            exceed_dof_pos_limits = -1e-1*10
-            exceed_torque_limits_i = -2e-1*10
+            exceed_dof_pos_limits = -1e-1
+            exceed_torque_limits_i = -2e-1
             diversity = 0.1
 
         only_positive_rewards = False # if true ne
@@ -96,19 +95,19 @@ class A1CrawlMetraCfg(A1CrawlCfg):
         penetrate_depth_threshold_easier = 300
 
 
-class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
+class A1CrawlRNDCfgPPO(A1CrawlCfgPPO):
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = False
         kappa_cap = 10.0
-        kappa = 0.1
+        kappa = 0.0
     
         
     class runner(A1CrawlCfgPPO.runner):
-        policy_class_name = 'ActorCriticMetra'
-        experiment_name = 'a1_crawl_metra'
-        algorithm_class_name = 'PPOMetra'
+        policy_class_name = 'ActorCriticRND'
+        experiment_name = 'a1_crawl_rnd'
+        algorithm_class_name = 'PPORND'
         max_iterations = 200000  # number of policy updates
         save_interval = 1000
         resume = False

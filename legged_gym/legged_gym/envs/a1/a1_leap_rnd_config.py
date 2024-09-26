@@ -2,7 +2,7 @@ import numpy as np
 from legged_gym.envs.a1.a1_leap_config import A1LeapCfg, A1LeapCfgPPO
 from legged_gym.utils.helpers import merge_dict
 
-class A1LeapMetraCfg( A1LeapCfg ):
+class A1LeapRNDCfg( A1LeapCfg ):
 
     #### uncomment this to train non-virtual terrain
     # class sensor( A1FieldCfg.sensor ):
@@ -12,19 +12,16 @@ class A1LeapMetraCfg( A1LeapCfg ):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1LeapCfg.env):
-        skill_dim = 2
+        skill_dim=2
         # phi_start_dim = 2
         # phi_input_dim = 1
-        sample_skill = True
         obs_components = [
             "base_pose",
             "proprioception",  # 48
             # "height_measurements", # 187
-
             "robot_config",
             "engaging_block",
             "sidewall_distance",
-            "skills",
         ]
         episode_length_s=20
     class terrain( A1LeapCfg.terrain ):
@@ -79,15 +76,15 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
     class rewards( A1LeapCfg.rewards ):
         class scales:
-            tracking_ang_vel = 0.05*10
-            world_vel_l2norm = -1.0*10 #-1.
-            legs_energy_substeps = -1e-6*10
-            alive = 2*10 #2.
+            tracking_ang_vel = 0.05
+            world_vel_l2norm = -1. #-1.
+            legs_energy_substeps = -1e-6
+            alive = 2 #2.
             # tracking_lin_vel = 1
             penetrate_depth = 0. #-4e-3
             penetrate_volume = 0. #-4e-3
-            exceed_dof_pos_limits = -1e-1*10 #-1e-1
-            exceed_torque_limits_i = -2e-1*10 #-2e-1
+            exceed_dof_pos_limits = -1e-1 #-1e-1
+            exceed_torque_limits_i = -2e-1 #-2e-1
             diversity = 0.1
             
         only_positive_rewards = False
@@ -103,18 +100,18 @@ class A1LeapMetraCfg( A1LeapCfg ):
         penetrate_depth_threshold_easier = 5000
 
 
-class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
+class A1LeapRNDCfgPPO( A1LeapCfgPPO ):
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = False
         kappa_cap = 1
-        kappa = 0.1
+        kappa = 0
     
     class runner( A1LeapCfgPPO.runner ):
-        policy_class_name = 'ActorCriticMetra'
-        experiment_name = 'a1_leap_metra'
-        algorithm_class_name = 'PPOMetra'
+        policy_class_name = 'ActorCriticRND'
+        experiment_name = 'a1_leap_rnd'
+        algorithm_class_name = 'PPORND'
         max_iterations = 200000  # number of policy updates
         save_interval = 1000
         resume = False

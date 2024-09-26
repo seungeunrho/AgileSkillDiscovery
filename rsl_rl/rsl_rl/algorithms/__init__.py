@@ -30,4 +30,5 @@
 
 from .ppo import PPO
 from .ppo_skill import PPOMetra
+from .ppo_rnd import PPORND
 from .tppo import TPPO

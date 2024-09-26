@@ -94,7 +94,7 @@ def play(args):
     # override some parameters for testing
     if env_cfg.terrain.selected == "BarrierTrack":
         env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
-        # env_cfg.env.episode_length_s = 5
+        env_cfg.env.episode_length_s = 5
         
         env_cfg.terrain.max_init_terrain_level = 0
         env_cfg.terrain.num_rows = 1
@@ -108,15 +108,15 @@ def play(args):
         env_cfg.terrain.num_rows = 1
         env_cfg.terrain.num_cols = 1
     env_cfg.terrain.curriculum = False
-    env_cfg.terrain.BarrierTrack_kwargs["options"] = [
-        # "crawl",
-        # "jump",
-        # "leap",
-        "tilt",
-    ]
+    # env_cfg.terrain.BarrierTrack_kwargs["options"] = [
+    #     "crawl",
+    #     # "jump",
+    #     # "leap",
+    #     # "tilt",
+    # ]
     if "one_obstacle_per_track" in env_cfg.terrain.BarrierTrack_kwargs.keys():
         env_cfg.terrain.BarrierTrack_kwargs.pop("one_obstacle_per_track")
-    env_cfg.terrain.BarrierTrack_kwargs["n_obstacles_per_track"] = 2
+    env_cfg.terrain.BarrierTrack_kwargs["n_obstacles_per_track"] = 3
     env_cfg.commands.ranges.lin_vel_x = [1.2, 1.2]
     if "distill" in args.task:
         env_cfg.commands.ranges.lin_vel_x = [0.0, 0.0]

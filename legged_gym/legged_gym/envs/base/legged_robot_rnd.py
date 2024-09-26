@@ -13,17 +13,17 @@ import torch
 from legged_gym.envs.base.base_task import BaseTask
 
 
-class LeggedRobotMetra(LeggedRobotNoisy):
+class LeggedRobotRND(LeggedRobotNoisy):
     def __init__(self, cfg, sim_params, physics_engine, sim_device, headless):
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
         self.div_rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
 
     def _init_buffers(self):
         super()._init_buffers()
-        self.skill_dim = self.cfg.env.skill_dim
+        # self.skill_dim = self.cfg.env.skill_dim
         # self.phi_start_dim = self.cfg.env.phi_start_dim
         # self.phi_input_dim = self.cfg.env.phi_input_dim
-        self.skills = torch.zeros(self.num_envs, self.skill_dim, device=self.device, dtype=torch.float, requires_grad=False)
+        # self.skills = torch.zeros(self.num_envs, self.skill_dim, device=self.device, dtype=torch.float, requires_grad=False)
         self.prev_skill_obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float, requires_grad=False)
 
         # self.sample_skill = self.cfg.env.sample_skill
@@ -40,8 +40,8 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         self.obs_buf[env_ids] = 0.
         self.prev_skill_obs_buf[env_ids] = 0.
 
-        if self.cfg.env.sample_skill:
-            self.skills[env_ids] = torch.normal(0, 1, size=(len(env_ids), self.skill_dim)).to(self.device)
+        # if self.cfg.env.sample_skill:
+        #     self.skills[env_ids] = torch.normal(0, 1, size=(len(env_ids), self.skill_dim)).to(self.device)
 
 
         # if len(env_ids)>0:
@@ -77,8 +77,8 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         if "sidewall_distance" in components:
             self.check_BarrierTrack_terrain()
             segments["sidewall_distance"] = (2,)
-        if "skills" in components:
-            segments["skills"] = (self.cfg.env.skill_dim,)
+        # if "skills" in components:
+        #     segments["skills"] = (self.cfg.env.skill_dim,)
         return segments
 
     def compute_observations(self):
@@ -90,17 +90,19 @@ class LeggedRobotMetra(LeggedRobotNoisy):
     def set_actor_in_env(self, actor_critic):
         self.actor_critic = actor_critic
 
-    def fix_skill(self, skill_vec):
-        # for only playing with one agent
-        self.skills[0] = torch.tensor(skill_vec).to(self.device)
+    # def fix_skill(self, skill_vec):
+    #     # for only playing with one agent
+    #     self.skills[0] = torch.tensor(skill_vec).to(self.device)
 
     def _reward_diversity(self):
         with torch.no_grad():
             # phi_s_prime = self.actor_critic.discriminator_inference(self.obs_buf[:, self.phi_start_dim : self.phi_start_dim + self.phi_input_dim])
-            phi_s_prime = self.actor_critic.discriminator_inference(self.obs_buf)
+            rnd_s_prime = self.actor_critic.discriminator_inference(self.obs_buf)
             # import ipdb;ipdb.set_trace()
-            phi_s = self.actor_critic.discriminator_inference(self.prev_skill_obs_buf)
-            int_rew = (phi_s_prime - phi_s) * self.skills
+            rnd_freeze_s_prime = self.actor_critic.random_inference(self.obs_buf)
+            # phi_s = self.actor_critic.discriminator_inference(self.prev_skill_obs_buf)
+            # int_rew = (phi_s_prime - phi_s) * self.skills
+            int_rew = (rnd_s_prime - rnd_freeze_s_prime)**2
             int_rew = torch.sum(int_rew, dim=-1)
             # int_rew = (phi_s_prime - phi_s) * self.skills / torch.norm(self.skills, p=2)
 
@@ -121,8 +123,8 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         # noise_vec[:] = self.cfg.noise.noise_scales.forward_depth * self.cfg.noise.noise_level * self.obs_scales.forward_depth
         pass
 
-    def _get_skills_obs(self, privileged=False):
-        return self.skills
+    # def _get_skills_obs(self, privileged=False):
+        # return self.skills
 
 
     def compute_reward(self):
@@ -135,7 +137,7 @@ class LeggedRobotMetra(LeggedRobotNoisy):
         for i in range(len(self.reward_functions)):
             name = self.reward_names[i]
             # import ipdb;ipdb.set_trace()
-            if name == "diversity" and self.reward_scales[name]>0:
+            if name == "diversity" :
                 div_rew = self.reward_functions[i]() * self.reward_scales[name]
                 self.div_rew_buf += div_rew
                 self.episode_sums[name] += div_rew

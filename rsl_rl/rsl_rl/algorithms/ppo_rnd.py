@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from rsl_rl.modules import ActorCritic, ActorCriticMetra
+from rsl_rl.modules import ActorCritic, ActorCriticRND
 from rsl_rl.storage import RolloutStorage
 
 from .ppo import PPO
@@ -13,7 +13,7 @@ from torch.autograd import Variable
 
 
 
-class PPOMetra(PPO):
+class PPORND(PPO):
     # actor_critic: ActorCriticMetra
     def __init__(self,
                  actor_critic,
@@ -97,8 +97,8 @@ class PPOMetra(PPO):
         value_batch, div_value_batch = self.actor_critic.evaluate(minibatch.critic_obs, masks=minibatch.masks,
                                                  hidden_states=minibatch.hid_states[1])
 
-        adv = minibatch.advantages + self.kappa * minibatch.div_advantages
-        
+        # adv = minibatch.advantages + self.kappa * minibatch.div_advantages
+        adv = minibatch.advantages + minibatch.div_advantages
         mu_batch = self.actor_critic.action_mean
         sigma_batch = self.actor_critic.action_std
         try:
@@ -114,14 +114,14 @@ class PPOMetra(PPO):
                                                                                1.0 + self.clip_param)
         surrogate_loss = torch.max(surrogate, surrogate_clipped).mean()
 
-        if self.adjustable_kappa:
-            surrogate_div = -torch.squeeze(minibatch.div_advantages) * ratio
-            surrogate_clipped_div = -torch.squeeze(minibatch.div_advantages) * torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
-            surrogate_loss_div = torch.max(surrogate_div, surrogate_clipped_div).mean()
-            surrogate_loss_div.backward(retain_graph=True)
-            actor_grad_div = self._get_actor_grads()
-            for param in self.actor_critic.actor.parameters():
-                param.grad = None
+        # if self.adjustable_kappa:
+        #     surrogate_div = -torch.squeeze(minibatch.div_advantages) * ratio
+        #     surrogate_clipped_div = -torch.squeeze(minibatch.div_advantages) * torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
+        #     surrogate_loss_div = torch.max(surrogate_div, surrogate_clipped_div).mean()
+        #     surrogate_loss_div.backward(retain_graph=True)
+        #     actor_grad_div = self._get_actor_grads()
+        #     for param in self.actor_critic.actor.parameters():
+        #         param.grad = None
 
 
         # Value function loss
@@ -143,28 +143,29 @@ class PPOMetra(PPO):
 
         value_loss = value_loss + div_value_loss
 
-        phi_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
-        phi_obs = self.actor_critic.discriminator_inference(minibatch.obs)
-        z = minibatch.obs[:, -self.actor_critic.skill_dim:]
+        rnd_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
+        with torch.no_grad():
+            rnd_frozen_next_obs = self.actor_critic.random_inference(minibatch.next_obs)
+        # z = minibatch.obs[:, -self.actor_critic.skill_dim:]
 
-        phi_diff = phi_next_obs - phi_obs
+        rnd_diff = rnd_next_obs - rnd_frozen_next_obs
+        
+        rnd_loss = torch.square(torch.norm((rnd_diff), dim=1, p=2)).sum()
         # import ipdb;ipdb.set_trace()
-        phi_norm_squared = torch.square(torch.norm((phi_diff), dim=1, p=2))
-
-        phi_loss = (phi_diff * z).sum(dim=1) + \
-                   self.actor_critic.lamda.detach() * torch.clamp(1. - phi_norm_squared,
-                                                                  max=self.actor_critic.epsilon)
-        phi_loss = -(phi_loss * (1 - minibatch.dones)).mean()
-        lamda_loss = self.actor_critic.lamda * torch.clamp(1. - phi_norm_squared.detach(),
-                                                           max=self.actor_critic.epsilon)
-        lamda_loss = (lamda_loss * (1 - minibatch.dones)).mean()
+        # phi_loss = (phi_diff * z).sum(dim=1) + \
+        #            self.actor_critic.lamda.detach() * torch.clamp(1. - phi_norm_squared,
+        #                                                           max=self.actor_critic.epsilon)
+        # phi_loss = -(phi_loss * (1 - minibatch.dones)).mean()
+        # lamda_loss = self.actor_critic.lamda * torch.clamp(1. - phi_norm_squared.detach(),
+        #                                                    max=self.actor_critic.epsilon)
+        # lamda_loss = (lamda_loss * (1 - minibatch.dones)).mean()
 
 
         return_ = dict(
             surrogate_loss=surrogate_loss,
             value_loss=value_loss,
-            phi_loss=phi_loss,
-            lamda_loss=lamda_loss,
+            rnd_loss=rnd_loss,
+            # lamda_loss=lamda_loss,
         )
         if entropy_batch is not None:
             return_["entropy"] = - entropy_batch.mean()
@@ -178,10 +179,10 @@ class PPOMetra(PPO):
             inter_vars["kl"] = kl
         if self.use_clipped_value_loss:
             inter_vars["value_clipped"] = value_clipped
-        if self.adjustable_kappa:
-            return return_, inter_vars, dict(actor_grad_div=actor_grad_div)
-        else: 
-            return return_, inter_vars, dict()
+        # if self.adjustable_kappa:
+        #     return return_, inter_vars, dict(actor_grad_div=actor_grad_div)
+        # else: 
+        return return_, inter_vars, dict()
 
     def act(self, obs, critic_obs):
         if self.actor_critic.is_recurrent:
@@ -232,10 +233,10 @@ class PPOMetra(PPO):
                 self.optimizer.zero_grad()
                 loss.backward()
                 nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.max_grad_norm)
-                if self.adjustable_kappa:
-                    actor_grad = self._get_actor_grads()
-                    self.update_kappa(actor_grad)
-                    self.prev_grad.copy_(stats["actor_grad_div"])
+                # if self.adjustable_kappa:
+                #     actor_grad = self._get_actor_grads()
+                #     self.update_kappa(actor_grad)
+                #     self.prev_grad.copy_(stats["actor_grad_div"])
 
                 self.optimizer.step()
             
