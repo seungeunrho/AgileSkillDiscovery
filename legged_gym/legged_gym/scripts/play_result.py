@@ -47,7 +47,7 @@ from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Log
 from legged_gym.utils.helpers import update_class_from_dict
 from legged_gym.utils.observation import get_obs_slice
 from legged_gym.debugger import break_into_debugger
-
+from tqdm import tqdm
 import numpy as np
 import torch
 
@@ -93,14 +93,14 @@ def play(args):
 
     # override some parameters for testing
     if env_cfg.terrain.selected == "BarrierTrack":
-        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
-        env_cfg.env.episode_length_s = 10
+        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 10)
+        env_cfg.env.episode_length_s = 20
         
         env_cfg.terrain.max_init_terrain_level = 0
         env_cfg.terrain.num_rows = 1
         env_cfg.terrain.num_cols = 1
     else:
-        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
+        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 10)
         env_cfg.env.episode_length_s = 60
         env_cfg.terrain.terrain_length = 8
         env_cfg.terrain.terrain_width = 8
@@ -108,8 +108,6 @@ def play(args):
         env_cfg.terrain.num_rows = 1
         env_cfg.terrain.num_cols = 1
     env_cfg.terrain.curriculum = False
-    env_cfg.terrain.BarrierTrack_kwargs['add_perlin_noise'] = True
-    env_cfg.terrain.TerrainPerlin_kwargs['zScale'] = [0.01,0.05]
     # env_cfg.terrain.BarrierTrack_kwargs["options"] = [
     #     "crawl",
     #     # "jump",
@@ -118,7 +116,9 @@ def play(args):
     # ]
     if "one_obstacle_per_track" in env_cfg.terrain.BarrierTrack_kwargs.keys():
         env_cfg.terrain.BarrierTrack_kwargs.pop("one_obstacle_per_track")
-    env_cfg.terrain.BarrierTrack_kwargs["n_obstacles_per_track"] = 3
+    num_obstacles = 3
+    env_cfg.terrain.BarrierTrack_kwargs["n_obstacles_per_track"] = num_obstacles   
+    # import ipdb;ipdb.set_trace() 
     if train_cfg.runner.experiment_name =='a1_crawl_metra':
         env_cfg.commands.ranges.lin_vel_x = [0.6, 0.6]
     else:
@@ -147,32 +147,6 @@ def play(args):
             num_critic_obs= 48,
             num_actions= 12,
         )
-
-    ######### Some hacks to run ActorCriticMutex policy ##########
-    if False: # for a1
-        train_cfg.runner.policy_class_name = "ActorCriticClimbMutex"
-        train_cfg.policy.sub_policy_class_name = "ActorCriticRecurrent"
-        logs_root = "logs"
-        train_cfg.policy.sub_policy_paths = [ # must in the order of obstacle ID
-                    logs_root + "/field_a1_oracle/Jun03_00-01-38_SkillsPlaneWalking_pEnergySubsteps1e-5_rAlive2_pTorqueExceedIndicate1e+1_noCurriculum_propDelay0.04-0.05_noPerlinRate-2.0_nSubsteps4_envFreq50.0_aScale244",
-                    logs_root + "/field_a1_oracle/Aug08_05-22-52_Skills_tilt_pEnergySubsteps1e-5_rAlive1_pPenV5e-3_pPenD5e-3_pPosY0.50_pYaw0.50_rTilt7e-1_pTorqueExceedIndicate1e-1_virtualTerrain_propDelay0.04-0.05_push/",
-                    logs_root + "/field_a1_oracle/May21_05-25-19_Skills_crawl_pEnergy2e-5_rAlive1_pPenV6e-2_pPenD6e-2_pPosY0.2_kp50_noContactTerminate_aScale0.5/",
-                    logs_root + "/field_a1_oracle/Jun03_00-33-08_Skills_climb_pEnergySubsteps2e-6_rAlive2_pTorqueExceedIndicate2e-1_propDelay0.04-0.05_noPerlinRate0.2_nSubsteps4_envFreq50.0_aScale0.5",
-                    logs_root + "/field_a1_oracle/Jun04_01-03-59_Skills_leap_pEnergySubsteps2e-6_rAlive2_pPenV4e-3_pPenD4e-3_pPosY0.20_pYaw0.20_pTorqueExceedSquare1e-3_leapH0.2_propDelay0.04-0.05_noPerlinRate0.2_aScale0.5",
-                ]
-        train_cfg.policy.jump_down_policy_path = logs_root + "/field_a1_oracle/Aug30_16-12-14_Skills_climb_climbDownProb0.5_propDelay0.04-0.05"
-        train_cfg.runner.resume = False
-        env_cfg.env.use_lin_vel = True
-        train_cfg.policy.cmd_vel_mapping = {
-                    0: 1.0,
-                    1: 0.5,
-                    2: 0.8,
-                    3: 1.2,
-                    4: 1.5,
-                }
-        if args.task == "a1_distill":
-            env_cfg.env.obs_components = env_cfg.env.privileged_obs_components
-        env_cfg.env.privileged_obs_gets_privilege = False
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
@@ -238,123 +212,84 @@ def play(args):
     camera_vel = np.array([0.6, 0., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     # import ipdb;ipdb.set_trace()
-    camera_direction = np.array([0,2.0,-0.5])
+    # camera_direction = np.array([0,2.0,-0.5])
     camera_follow_id = 0 # only effective when CAMERA_FOLLOW
     img_idx = 0
-
+    num_iter = 30/ env_cfg.env.num_envs
+    n_obstacles_passed = []
+    n_obstacles_passed_2 = torch.empty((0,1))
+    n_obstacles_passed_3 = torch.empty((0,1))
     if hasattr(env, "motor_strength"):
         print("motor_strength:", env.motor_strength[robot_index].cpu().numpy().tolist())
     print("torque_limits:", env.torque_limits)
     start_time = time.time_ns()
-    for i in range(10*int(env.max_episode_length)):
-        if "obs_slice" in locals().keys():
-            obs_component = obs[:, obs_slice[0]].reshape(-1, *obs_slice[1])
-            # print(obs_component[robot_index])
-        # print(env.commands)
+    while len(n_obstacles_passed_2) <1000:
+        for i in tqdm(range(1*int(env.max_episode_length))):
+            if "obs_slice" in locals().keys():
+                obs_component = obs[:, obs_slice[0]].reshape(-1, *obs_slice[1])
+            
+            actions = policy(obs.detach())
+            teacher_actions = actions
+            obs, critic_obs, rews, dones, infos = env.step(actions.detach())
+            # print(env.extras['episode']['n_obstacle_passed'])
+            if i < stop_state_log:
+                if torch.is_tensor(env.cfg.control.action_scale):
+                    action_scale = env.cfg.control.action_scale.detach().cpu().numpy()[joint_index]
+                else:
+                    action_scale = env.cfg.control.action_scale
+                base_roll = get_euler_xyz(env.base_quat)[0][robot_index].item()
+                base_pitch = get_euler_xyz(env.base_quat)[1][robot_index].item()
+                if base_pitch > torch.pi: base_pitch -= torch.pi * 2
+   
+            elif i==stop_state_log:
+                logger.plot_states()
+                env._get_terrain_curriculum_move(torch.tensor([0], device= env.device))
+            if  0 < i < stop_rew_log:
+                if infos["episode"]:
+                    num_episodes = torch.sum(env.reset_buf).item()
+                    if num_episodes>0:
+                        logger.log_rewards(infos["episode"], num_episodes)
+            elif i==stop_rew_log:
+                logger.print_rewards()
+            
+            # if dones.any():
+            if dones.any():
+                with torch.no_grad():
+                    pos_x = env.extras['episode']['pos_x'] 
+                    
+                    n_obstacle_passed_ = torch.clip(
+                        torch.div(pos_x, env.terrain.env_block_length, rounding_mode= "floor") - 1,
+                        min= 0.0,
+                    ).cpu()
+                    
+            
+                agent_model.reset(dones)
+                n_obstacles_passed.append(env.extras['episode']['n_obstacle_passed'])
+                # import ipdb;ipdb.set_trace()
+                n_obstacles_passed_2 = torch.cat((n_obstacles_passed_2,torch.clamp(env.extras['episode']['n_obstacle_passed_per_robot'].unsqueeze(1),min=0,max=num_obstacles)),0)
+                n_obstacles_passed_3 = torch.cat((n_obstacles_passed_3,n_obstacle_passed_.unsqueeze(1)),0)
+
+                # n_obstacles_passed_3.append(n_obstacle_passed_)
+                print("env dones,{} because has timeout".format("" if env.time_out_buf[dones].any() else " not"))
+                print(infos)
+                
+                # break
+                # continue
+            # if i % 100 == 0:
+            #     print("frame_rate:" , 100/(time.time_ns() - start_time) * 1e9, 
+            #         "command_x:", env.commands[robot_index, 0],
+            #     )
+                start_time = time.time_ns()
+           
+        n_obstacles_passed.append(env.extras['episode']['n_obstacle_passed'])    
         # import ipdb;ipdb.set_trace()
-        actions = policy(obs.detach())
-        teacher_actions = actions
-        obs, critic_obs, rews, dones, infos = env.step(actions.detach())
-        if RECORD_FRAMES:
-            filename = os.path.join(
-                os.path.abspath("logs/images/"),
-                f"{img_idx:04d}.png",
-            )
-            env.gym.write_viewer_image_to_file(env.viewer, filename)
-            img_idx += 1
-        if MOVE_CAMERA:
-            if CAMERA_FOLLOW:
-                camera_position[:] = env.root_states[camera_follow_id, :3].cpu().numpy() - camera_direction
-            else:
-                camera_position += camera_vel * env.dt
-            env.set_camera(camera_position, camera_position + camera_direction)
-        for ui_event in env.gym.query_viewer_action_events(env.viewer):
-            if ui_event.action == "push_robot" and ui_event.value > 0:
-                # manully trigger to push the robot
-                env._push_robots()
-            if ui_event.action == "press_robot" and ui_event.value > 0:
-                env.root_states[:, 9] = torch_rand_float(-env.cfg.domain_rand.max_push_vel_xy, 0, (env.num_envs, 1), device=env.device).squeeze(1)
-                env.gym.set_actor_root_state_tensor(env.sim, gymtorch.unwrap_tensor(env.all_root_states))
-            if ui_event.action == "action_jitter" and ui_event.value > 0:
-                # assuming wrong action is taken
-                obs, critic_obs, rews, dones, infos = env.step(torch.tanh(torch.randn_like(actions)))
-            if ui_event.action == "exit" and ui_event.value > 0:
-                print("exit")
-                exit(0)
-            if ui_event.action == "agent_full_reset" and ui_event.value > 0:
-                print("agent_full_reset")
-                agent_model.reset()
-            if ui_event.action == "full_reset" and ui_event.value > 0:
-                print("full_reset")
-                agent_model.reset()
-                obs, _ = env.reset()
-            if ui_event.action == "resample_commands" and ui_event.value > 0:
-                print("resample_commands")
-                env._resample_commands(torch.arange(env.num_envs, device= env.device))
-            if ui_event.action == "stop" and ui_event.value > 0:
-                env.commands[:, :] = 0
-            if ui_event.action == "forward" and ui_event.value > 0:
-                env.commands[:, 0] = env_cfg.commands.ranges.lin_vel_x[1]
-            if ui_event.action == "backward" and ui_event.value > 0:
-                env.commands[:, 0] = env_cfg.commands.ranges.lin_vel_x[0]
-            if ui_event.action == "leftward" and ui_event.value > 0:
-                env.commands[:, 1] = env_cfg.commands.ranges.lin_vel_y[1]
-            if ui_event.action == "rightward" and ui_event.value > 0:
-                env.commands[:, 1] = env_cfg.commands.ranges.lin_vel_y[0]
-            if ui_event.action == "leftturn" and ui_event.value > 0:
-                env.commands[:, 2] = env_cfg.commands.ranges.ang_vel_yaw[1]
-            if ui_event.action == "rightturn" and ui_event.value > 0:
-                env.commands[:, 2] = env_cfg.commands.ranges.ang_vel_yaw[0]
-
-        if i < stop_state_log:
-            if torch.is_tensor(env.cfg.control.action_scale):
-                action_scale = env.cfg.control.action_scale.detach().cpu().numpy()[joint_index]
-            else:
-                action_scale = env.cfg.control.action_scale
-            base_roll = get_euler_xyz(env.base_quat)[0][robot_index].item()
-            base_pitch = get_euler_xyz(env.base_quat)[1][robot_index].item()
-            if base_pitch > torch.pi: base_pitch -= torch.pi * 2
-            logger.log_states(
-                {
-                    'dof_pos_target': actions[robot_index, joint_index].item() * action_scale,
-                    'dof_pos': (env.dof_pos - env.default_dof_pos)[robot_index, joint_index].item(),
-                    'dof_vel': env.substep_dof_vel[robot_index, 0, joint_index].max().item(),
-                    'dof_torque': env.substep_torques[robot_index, 0, joint_index].max().item(),
-                    'command_x': env.commands[robot_index, 0].item(),
-                    'command_y': env.commands[robot_index, 1].item(),
-                    'command_yaw': env.commands[robot_index, 2].item(),
-                    'base_vel_x': env.base_lin_vel[robot_index, 0].item(),
-                    'base_vel_y': env.base_lin_vel[robot_index, 1].item(),
-                    'base_vel_z': env.base_lin_vel[robot_index, 2].item(),
-                    'base_pitch': base_pitch,
-                    'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy(),
-                    'max_torques': torch.abs(env.substep_torques).max().item(),
-                    "student_action": actions[robot_index, 2].item(),
-                    "teacher_action": teacher_actions[robot_index, 2].item(),
-                    "reward": rews[robot_index].item(),
-                }
-            )
-        elif i==stop_state_log:
-            logger.plot_states()
-            env._get_terrain_curriculum_move(torch.tensor([0], device= env.device))
-        if  0 < i < stop_rew_log:
-            if infos["episode"]:
-                num_episodes = torch.sum(env.reset_buf).item()
-                if num_episodes>0:
-                    logger.log_rewards(infos["episode"], num_episodes)
-        elif i==stop_rew_log:
-            logger.print_rewards()
-        
-        if dones.any():
-            agent_model.reset(dones)
-            print("env dones,{} because has timeout".format("" if env.time_out_buf[dones].any() else " not"))
-            print(infos)
-        if i % 100 == 0:
-            print("frame_rate:" , 100/(time.time_ns() - start_time) * 1e9, 
-                  "command_x:", env.commands[robot_index, 0],
-            )
-            start_time = time.time_ns()
-
+    print("Mean: ", n_obstacles_passed_2[:1000].mean())
+    print("Std: ", n_obstacles_passed_2[:1000].std())
+    file_name = train_cfg.runner.experiment_name+"_"+str(train_cfg.seed)+"_"+str(train_cfg.runner.checkpoint)+ "_n_obstacle_"+str(num_obstacles)+".pt"
+    # import ipdb;ipdb.set_trace()
+    torch.save(n_obstacles_passed_2, file_name)
+    
+    import ipdb;ipdb.set_trace()
 if __name__ == '__main__':
     EXPORT_POLICY = False
     RECORD_FRAMES = False

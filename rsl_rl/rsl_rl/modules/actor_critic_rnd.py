@@ -76,10 +76,11 @@ class ActorCriticRND(ActorCritic):
         self.skill_dim = kwargs['skill_dim']
         self.phi_input_dim = kwargs['phi_input_dim']
         self.phi_start_dim = kwargs['phi_start_dim']
+        self.phi_index = kwargs["phi_index"]
 
 
         discriminator_layers = []
-        discriminator_layers.append(nn.Linear(self.phi_input_dim, discriminator_hidden_dims[0]))
+        discriminator_layers.append(nn.Linear(len(self.phi_index), discriminator_hidden_dims[0]))
         discriminator_layers.append(activation)
         for l in range(len(actor_hidden_dims)):
             if l == len(actor_hidden_dims) - 1:
@@ -90,7 +91,7 @@ class ActorCriticRND(ActorCritic):
         self.discriminator = nn.Sequential(*discriminator_layers)
 
         rnd_layers =[]
-        rnd_layers.append(nn.Linear(self.phi_input_dim, discriminator_hidden_dims[0]))
+        rnd_layers.append(nn.Linear(len(self.phi_index), discriminator_hidden_dims[0]))
         rnd_layers.append(activation)
         for l in range(len(actor_hidden_dims)):
             if l == len(actor_hidden_dims) - 1:
@@ -100,6 +101,8 @@ class ActorCriticRND(ActorCritic):
                 rnd_layers.append(activation)
         self.rnd = nn.Sequential(*rnd_layers)
         self.rnd.requires_grad = False
+        for param in self.rnd.parameters():
+            param.requires_grad = False
         # self.lamda = torch.nn.Parameter(torch.tensor([30.]))
         # self.epsilon = 0.001
 
@@ -123,10 +126,13 @@ class ActorCriticRND(ActorCritic):
     #     return self.discriminator(pos_int)
 
     def discriminator_inference(self, observations):
-        return self.discriminator(observations[:, self.phi_start_dim:self.phi_start_dim+self.phi_input_dim])
+        # return self.discriminator(observations[:, self.phi_start_dim:self.phi_start_dim+self.phi_input_dim])
+        return self.discriminator(observations[:, self.phi_index])
     
     def random_inference(self,observations):
-        return self.rnd(observations[:, self.phi_start_dim:self.phi_start_dim+self.phi_input_dim])
+        # return self.rnd(observations[:, self.phi_start_dim:self.phi_start_dim+self.phi_input_dim])
+        return self.rnd(observations[:, self.phi_index])
+
 
     def evaluate(self, critic_observations, **kwargs):
         value = self.critic(critic_observations)

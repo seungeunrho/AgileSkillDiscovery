@@ -12,7 +12,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1CrawlCfg.env):
-        skill_dim = 2
+        skill_dim = 1
         # phi_start_dim = 2
         # phi_input_dim = 4
         sample_skill = True
@@ -39,7 +39,7 @@ class A1CrawlMetraCfg(A1CrawlCfg):
             ],
             track_block_length= 1.6,
             crawl= dict(
-                height= (0.30, 0.30),
+                height= (0.29, 0.29),
                 depth= (0.1, 0.6), # size along the forward axis
                 wall_height= 0.6,
                 no_perlin_at_obstacle= False,
@@ -73,15 +73,15 @@ class A1CrawlMetraCfg(A1CrawlCfg):
 
     class rewards(A1CrawlCfg.rewards):
         class scales:
-            tracking_ang_vel = 0.05*10
-            world_vel_l2norm = -1.0*10
-            legs_energy_substeps = -1e-5*10
-            alive = 2.0*10
+            tracking_ang_vel = 0.05
+            world_vel_l2norm = -1.0
+            legs_energy_substeps = -1e-5
+            alive = 2.0
             penetrate_depth = 0.#-3e-3
             penetrate_volume = 0.#-3e-3
-            exceed_dof_pos_limits = -1e-1*10
-            exceed_torque_limits_i = -2e-1*10
-            diversity = 0.1
+            exceed_dof_pos_limits = -1e-1
+            exceed_torque_limits_i = -2e-1
+            diversity = 0.0
 
         only_positive_rewards = False # if true ne
     
@@ -97,19 +97,20 @@ class A1CrawlMetraCfg(A1CrawlCfg):
 
 
 class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
+    seed=4
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = False
         kappa_cap = 10.0
-        kappa = 0.1
+        kappa = 0
     
         
     class runner(A1CrawlCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_crawl_metra'
         algorithm_class_name = 'PPOMetra'
-        max_iterations = 200000  # number of policy updates
+        max_iterations = 15000  # number of policy updates
         save_interval = 1000
         resume = False
 
@@ -117,4 +118,5 @@ class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
         # for z
         phi_start_dim = 2
         phi_input_dim = 1
-        skill_dim = 2
+        phi_index = [2]
+        skill_dim = 1

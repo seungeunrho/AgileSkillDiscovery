@@ -16,6 +16,7 @@ class A1TiltCfg( A1FieldCfg ):
         border_size = 5
         slope_treshold = 20.
         curriculum = False
+        
 
         BarrierTrack_kwargs = merge_dict(A1FieldCfg.terrain.BarrierTrack_kwargs, dict(
             options= [

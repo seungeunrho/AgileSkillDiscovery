@@ -12,7 +12,8 @@ class A1TiltMetraCfg(A1TiltCfg):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1TiltCfg.env):
-        skill_dim = 2
+        skill_dim = 1
+        
         # phi_start_dim = 3
         # phi_input_dim = 3
         sample_skill = True
@@ -39,7 +40,7 @@ class A1TiltMetraCfg(A1TiltCfg):
                 "tilt",
             ],
             tilt=dict(
-                width=(0.32, 0.32),
+                width=(0.30, 0.30),
                 depth=(0.4, 1.),  # size along the forward axis
                 opening_angle=0.0,  # [rad] an opening that make the robot easier to get into the obstacle
                 wall_height=0.5,
@@ -54,7 +55,8 @@ class A1TiltMetraCfg(A1TiltCfg):
 
     class commands(A1TiltCfg.commands):
         class ranges(A1TiltCfg.commands.ranges):
-            lin_vel_x = [0.3, 0.6]
+            # lin_vel_x = [0.3, 0.6]
+            lin_vel_x = [0.5, 0.7]
             lin_vel_y = [0.0, 0.0]
             ang_vel_yaw = [0., 0.]
 
@@ -76,15 +78,15 @@ class A1TiltMetraCfg(A1TiltCfg):
     #     add_noise=False
     class rewards(A1TiltCfg.rewards):
         class scales:
-            tracking_ang_vel = 0.05*10
-            world_vel_l2norm = -1.0*10
-            legs_energy_substeps = -1e-5*10
-            alive = 2.0*10
+            tracking_ang_vel = 0.05
+            world_vel_l2norm = -1.0
+            legs_energy_substeps = -1e-5
+            alive = 2.0
             penetrate_depth = 0.#-3e-3
             penetrate_volume = 0.#-3e-3
-            exceed_dof_pos_limits = -1e-1*10
-            exceed_torque_limits_i = -2e-1*10
-            diversity = 0.1 #0.1
+            exceed_dof_pos_limits = -1e-1
+            exceed_torque_limits_i = -2e-1
+            diversity = 0.1#0.1
 
         only_positive_rewards = False # if true ne
     
@@ -100,17 +102,18 @@ class A1TiltMetraCfg(A1TiltCfg):
 
 
 class A1TiltMetraCfgPPO(A1TiltCfgPPO):
+    seed=2
     class algorithm(A1TiltCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
-        adjustable_kappa = False
+        adjustable_kappa = True
         kappa_cap = 10
-        kappa = 0.1
+        kappa = 0
     class runner(A1TiltCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_tilt_metra'
         algorithm_class_name = 'PPOMetra'
-        max_iterations = 200000  # number of policy updates
+        max_iterations = 10000  # number of policy updates
         save_interval = 1000
         resume = False
 
@@ -122,4 +125,6 @@ class A1TiltMetraCfgPPO(A1TiltCfgPPO):
         # for r
         phi_start_dim = 3
         phi_input_dim = 1
-        skill_dim = 2
+        
+        phi_index = [3]
+        skill_dim = 1

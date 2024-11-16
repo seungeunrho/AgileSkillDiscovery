@@ -12,7 +12,7 @@ class A1TiltRNDCfg(A1TiltCfg):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1TiltCfg.env):
-        skill_dim = 2
+        skill_dim = 1
         # phi_start_dim = 3
         # phi_input_dim = 3
         # sample_skill = True
@@ -99,17 +99,18 @@ class A1TiltRNDCfg(A1TiltCfg):
 
 
 class A1TiltRNDCfgPPO(A1TiltCfgPPO):
+    seed=3
     class algorithm(A1TiltCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = False
         kappa_cap = 10
-        kappa = 0
+        kappa = 1
     class runner(A1TiltCfgPPO.runner):
         policy_class_name = 'ActorCriticRND'
         experiment_name = 'a1_tilt_rnd'
         algorithm_class_name = 'PPORND'
-        max_iterations = 200000  # number of policy updates
+        max_iterations = 10000  # number of policy updates
         save_interval = 1000
         resume = False
 
@@ -121,4 +122,5 @@ class A1TiltRNDCfgPPO(A1TiltCfgPPO):
         # for r
         phi_start_dim = 3
         phi_input_dim = 1
-        skill_dim = 2
+        phi_index = [3]
+        skill_dim = 1

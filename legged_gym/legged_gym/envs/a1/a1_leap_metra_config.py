@@ -12,7 +12,7 @@ class A1LeapMetraCfg( A1LeapCfg ):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1LeapCfg.env):
-        skill_dim = 2
+        skill_dim = 1
         # phi_start_dim = 2
         # phi_input_dim = 1
         sample_skill = True
@@ -44,10 +44,14 @@ class A1LeapMetraCfg( A1LeapCfg ):
             ),
             virtual_terrain= False, # Change this to False for real terrain
             no_perlin_threshold= 0.06,
+            # add_perlin_noise = False
         ))
 
+        # TerrainPerlin_kwargs = merge_dict(A1LeapCfg.terrain.TerrainPerlin_kwargs, dict(
+        #     zScale= [0.05, 0.1],
+        # ))
         TerrainPerlin_kwargs = merge_dict(A1LeapCfg.terrain.TerrainPerlin_kwargs, dict(
-            zScale= [0.05, 0.1],
+            zScale= [0.0, 0.0],
         ))
     
     class commands( A1LeapCfg.commands ):
@@ -79,15 +83,15 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
     class rewards( A1LeapCfg.rewards ):
         class scales:
-            tracking_ang_vel = 0.05*10
-            world_vel_l2norm = -1.0*10 #-1.
-            legs_energy_substeps = -1e-6*10
-            alive = 2*10 #2.
+            tracking_ang_vel = 0.05
+            world_vel_l2norm = -1.0 #-1.
+            legs_energy_substeps = -1e-6
+            alive = 2 #2.
             # tracking_lin_vel = 1
             penetrate_depth = 0. #-4e-3
             penetrate_volume = 0. #-4e-3
-            exceed_dof_pos_limits = -1e-1*10 #-1e-1
-            exceed_torque_limits_i = -2e-1*10 #-2e-1
+            exceed_dof_pos_limits = -1e-1 #-1e-1
+            exceed_torque_limits_i = -2e-1 #-2e-1
             diversity = 0.1
             
         only_positive_rewards = False
@@ -104,18 +108,19 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
 
 class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
+    seed=3
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
-        adjustable_kappa = False
-        kappa_cap = 1
-        kappa = 0.1
+        adjustable_kappa = True
+        kappa_cap = 10
+        kappa = 0
     
     class runner( A1LeapCfgPPO.runner ):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_leap_metra'
         algorithm_class_name = 'PPOMetra'
-        max_iterations = 200000  # number of policy updates
+        max_iterations = 10000  # number of policy updates
         save_interval = 1000
         resume = False
     
@@ -132,4 +137,5 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
      # for v_x
         phi_start_dim = 6
         phi_input_dim = 1
-        skill_dim = 2
+        skill_dim = 1
+        phi_index = [6]

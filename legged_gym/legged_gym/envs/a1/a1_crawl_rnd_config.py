@@ -12,7 +12,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
     #### uncomment the above to train non-virtual terrain
 
     class env(A1CrawlCfg.env):
-        skill_dim = 2
+        skill_dim = 1
         # phi_start_dim = 2
         # phi_input_dim = 4
         # sample_skill = True
@@ -38,7 +38,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
             ],
             track_block_length= 1.6,
             crawl= dict(
-                height= (0.30, 0.30),
+                height= (0.29, 0.29),
                 depth= (0.1, 0.6), # size along the forward axis
                 wall_height= 0.6,
                 no_perlin_at_obstacle= False,
@@ -96,19 +96,20 @@ class A1CrawlRNDCfg(A1CrawlCfg):
 
 
 class A1CrawlRNDCfgPPO(A1CrawlCfgPPO):
+    seed =5
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = False
         kappa_cap = 10.0
-        kappa = 0.0
+        kappa = 1.0
     
         
     class runner(A1CrawlCfgPPO.runner):
         policy_class_name = 'ActorCriticRND'
         experiment_name = 'a1_crawl_rnd'
         algorithm_class_name = 'PPORND'
-        max_iterations = 200000  # number of policy updates
+        max_iterations = 15000  # number of policy updates
         save_interval = 1000
         resume = False
 
@@ -116,4 +117,5 @@ class A1CrawlRNDCfgPPO(A1CrawlCfgPPO):
         # for z
         phi_start_dim = 2
         phi_input_dim = 1
-        skill_dim = 2
+        phi_index = [2]
+        skill_dim = 1

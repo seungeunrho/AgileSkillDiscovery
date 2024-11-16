@@ -243,16 +243,23 @@ class LeggedRobotField(LeggedRobot):
         self.extras["episode"]["max_pos_y"] = 0.
         self.extras["episode"]["min_pos_y"] = 0.
         self.extras["episode"]["n_obstacle_passed"] = 0.
+        # self.extras["episode"]["n_obstacles_passed_per_robot"] = 
         with torch.no_grad():
             pos_x = self.root_states[env_ids, 0] - self.env_origins[env_ids, 0]
+           
             self.extras["episode"]["pos_x"] = pos_x
             if self.check_BarrierTrack_terrain():
                 self.extras["episode"]["n_obstacle_passed"] = torch.mean(torch.clip(
                     torch.div(pos_x, self.terrain.env_block_length, rounding_mode= "floor") - 1,
                     min= 0.0,
                 )).cpu()
+                self.extras["episode"]["n_obstacle_passed_per_robot"] = torch.clip(
+                    torch.div(pos_x, self.terrain.env_block_length, rounding_mode= "floor") - 1,
+                    min= 0.0,
+                ).cpu()
+                
         self.extras["episode"]["max_power_throughout_episode"] = self.max_power_per_timestep[env_ids].max().cpu().item()
-        
+        # import ipdb;ipdb.set_trace()
         return return_
 
     def _post_physics_step_callback(self):
@@ -270,6 +277,10 @@ class LeggedRobotField(LeggedRobot):
                     torch.div(pos_x, self.terrain.env_block_length, rounding_mode= "floor") - 1,
                     min= 0.0,
                 )).cpu()
+                self.extras["episode"]["n_obstacle_passed_per_robot"] = torch.clip(
+                    torch.div(pos_x, self.terrain.env_block_length, rounding_mode= "floor") - 1,
+                    min= 0.0,
+                ).cpu()
 
         self.max_power_per_timestep = torch.maximum(
             self.max_power_per_timestep,

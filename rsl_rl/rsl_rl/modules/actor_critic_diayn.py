@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.distributions import Normal
 
 
-class ActorCriticMetra(ActorCritic):
+class ActorCriticDiayn(ActorCritic):
     is_recurrent = False
 
     def __init__(self, num_actor_obs,
@@ -88,9 +88,10 @@ class ActorCriticMetra(ActorCritic):
             else:
                 discriminator_layers.append(nn.Linear(discriminator_hidden_dims[l], discriminator_hidden_dims[l + 1]))
                 discriminator_layers.append(activation)
+        discriminator_layers.append(nn.Softmax(dim=-1))
         self.discriminator = nn.Sequential(*discriminator_layers)
 
-        self.lamda = torch.nn.Parameter(torch.tensor([30.]))
+        # self.lamda = torch.nn.Parameter(torch.tensor([30.]))
         self.epsilon = 0.001
 
 
@@ -121,4 +122,5 @@ class ActorCriticMetra(ActorCritic):
         div_value = self.div_critic(critic_observations)
 
         return value, div_value
+    
 

@@ -30,6 +30,7 @@
 
 from .actor_critic import ActorCritic
 from .actor_critic_discriminator import ActorCriticMetra
+from .actor_critic_diayn import ActorCriticDiayn
 from .actor_critic_rnd import ActorCriticRND
 from .actor_critic_recurrent import ActorCriticRecurrent
 from .visual_actor_critic import VisualDeterministicRecurrent, VisualDeterministicAC

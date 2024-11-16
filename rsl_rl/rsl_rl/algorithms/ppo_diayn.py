@@ -13,7 +13,7 @@ from torch.autograd import Variable
 
 
 
-class PPOMetra(PPO):
+class PPODiayn(PPO):
     # actor_critic: ActorCriticMetra
     def __init__(self,
                  actor_critic,
@@ -65,6 +65,9 @@ class PPOMetra(PPO):
         self.adjustable_kappa = adjustable_kappa
         self.kappa = torch.tensor([kappa], dtype=torch.float, device=device)
         self.kappa_cap = kappa_cap
+        self.cross_ent_loss = nn.CrossEntropyLoss()
+        self.mse_loss = torch.nn.MSELoss()
+
         if adjustable_kappa:
             actor_num_params = sum(p.numel() for p in self.actor_critic.actor.parameters())
             self.prev_grad = torch.zeros(actor_num_params, dtype=torch.float, device=device)
@@ -147,28 +150,31 @@ class PPOMetra(PPO):
         else:
             value_loss = value_loss + div_value_loss
 
-        phi_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
-        phi_obs = self.actor_critic.discriminator_inference(minibatch.obs)
+        # phi_next_obs = self.actor_critic.discriminator_inference(minibatch.next_obs)
+        # phi_obs = self.actor_critic.discriminator_inference(minibatch.obs)
         z = minibatch.obs[:, -self.actor_critic.skill_dim:]
 
-        phi_diff = phi_next_obs - phi_obs
-        # import ipdb;ipdb.set_trace()
-        phi_norm_squared = torch.square(torch.norm((phi_diff), dim=1, p=2))
+        # phi_diff = phi_next_obs - phi_obs
+        # # import ipdb;ipdb.set_trace()
+        # phi_norm_squared = torch.square(torch.norm((phi_diff), dim=1, p=2))
 
-        phi_loss = (phi_diff * z).sum(dim=1) + \
-                   self.actor_critic.lamda.detach() * torch.clamp(1. - phi_norm_squared,
-                                                                  max=self.actor_critic.epsilon)
-        phi_loss = -(phi_loss * (1 - minibatch.dones)).mean()
-        lamda_loss = self.actor_critic.lamda * torch.clamp(1. - phi_norm_squared.detach(),
-                                                           max=self.actor_critic.epsilon)
-        lamda_loss = (lamda_loss * (1 - minibatch.dones)).mean()
+        # phi_loss = (phi_diff * z).sum(dim=1) + \
+        #            self.actor_critic.lamda.detach() * torch.clamp(1. - phi_norm_squared,
+        #                                                           max=self.actor_critic.epsilon)
+        q_s = self.actor_critic.discriminator_inference(minibatch.obs)
+        # import ipdb;ipdb.set_trace()
+        phi_loss = self.cross_ent_loss(q_s,z)
+        phi_loss = (phi_loss * (1 - minibatch.dones)).mean()
+        # lamda_loss = self.actor_critic.lamda * torch.clamp(1. - phi_norm_squared.detach(),
+        #                                                    max=self.actor_critic.epsilon)
+        # lamda_loss = (lamda_loss * (1 - minibatch.dones)).mean()
 
 
         return_ = dict(
             surrogate_loss=surrogate_loss,
             value_loss=value_loss,
             phi_loss=phi_loss,
-            lamda_loss=lamda_loss,
+            # lamda_loss=lamda_loss,
         )
         if entropy_batch is not None:
             return_["entropy"] = - entropy_batch.mean()
