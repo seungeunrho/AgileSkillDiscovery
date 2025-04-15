@@ -502,6 +502,7 @@ class BarrierTrack:
                         TerrainPerlin_kwargs[k] = v[0] * (1 - difficulty) + v[1] * difficulty
                     if self.track_kwargs["no_perlin_threshold"] > TerrainPerlin_kwargs[k]:
                         TerrainPerlin_kwargs[k] = 0.
+            #import ipdb;ipdb.set_trace()
             heightfield_noise = TerrainPerlin.generate_fractal_noise_2d(
                 xSize= self.env_length,
                 ySize= self.env_width,

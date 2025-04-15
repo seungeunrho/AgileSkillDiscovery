@@ -30,7 +30,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
         max_init_terrain_level = 2
         border_size = 5
         slope_treshold = 20.
-        curriculum = False
+        curriculum = True
 
         BarrierTrack_kwargs = merge_dict(A1CrawlCfg.terrain.BarrierTrack_kwargs, dict(
             options= [
@@ -38,7 +38,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
             ],
             track_block_length= 1.6,
             crawl= dict(
-                height= (0.29, 0.29),
+                height= (0.22, 0.32),
                 depth= (0.1, 0.6), # size along the forward axis
                 wall_height= 0.6,
                 no_perlin_at_obstacle= False,
@@ -47,7 +47,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
         ))
 
         TerrainPerlin_kwargs = merge_dict(A1CrawlCfg.terrain.TerrainPerlin_kwargs, dict(
-            zScale= 0.1,
+            zScale= 0.0,
         ))
 
     class commands(A1CrawlCfg.commands):
@@ -96,7 +96,7 @@ class A1CrawlRNDCfg(A1CrawlCfg):
 
 
 class A1CrawlRNDCfgPPO(A1CrawlCfgPPO):
-    seed =5
+    seed =4
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True

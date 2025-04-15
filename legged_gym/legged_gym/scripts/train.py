@@ -51,7 +51,9 @@ def train(args):
     if not args.debug:
         wandb.init(project=args.task, name=args.run_name, mode=mode, dir="../../logs", sync_tensorboard=True)
         # if args.run_name=="go1":
-        wandb.save(LEGGED_GYM_ENVS_DIR + "/"+ "a1/" + args.task + "_config.py", policy="now")
+        name = args.task.split('_')
+        # wandb.save(LEGGED_GYM_ENVS_DIR + "/"+ "a1/" + args.task + "_config.py", policy="now")
+        wandb.save(LEGGED_GYM_ENVS_DIR + "/"+ name[0]+"/"+ args.task + "_config.py", policy="now")
         wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot_config.py", policy="now")
         wandb.save(LEGGED_GYM_ENVS_DIR + "/base/legged_robot.py", policy="now")
     env, env_cfg = task_registry.make_env(name=args.task, args=args)

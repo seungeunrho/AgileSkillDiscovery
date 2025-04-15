@@ -108,8 +108,8 @@ def play(args):
         env_cfg.terrain.num_rows = 1
         env_cfg.terrain.num_cols = 1
     env_cfg.terrain.curriculum = False
-    env_cfg.terrain.BarrierTrack_kwargs['add_perlin_noise'] = True
-    env_cfg.terrain.TerrainPerlin_kwargs['zScale'] = [0.01,0.05]
+    #env_cfg.terrain.BarrierTrack_kwargs['add_perlin_noise'] = True
+    # env_cfg.terrain.TerrainPerlin_kwargs['zScale'] = 0.0
     # env_cfg.terrain.BarrierTrack_kwargs["options"] = [
     #     "crawl",
     #     # "jump",

@@ -28,14 +28,14 @@ class A1LeapRNDCfg( A1LeapCfg ):
         max_init_terrain_level = 2
         border_size = 5
         slope_treshold = 20.
-        curriculum = False
+        curriculum = True
 
         BarrierTrack_kwargs = merge_dict(A1LeapCfg.terrain.BarrierTrack_kwargs, dict(
             options= [
                 "leap",
             ],
             leap= dict(
-                length= (0.48, 0.48),
+                length= (0.2, 0.6),
                 depth= (0.4, 0.8),
                 height= 0.2,
             ),
@@ -68,7 +68,7 @@ class A1LeapRNDCfg( A1LeapCfg ):
         action_scale = 0.5
         torque_limits = 25 # override the urdf
         computer_clip_torque = True
-        motor_clip_torque = False
+        motor_clip_torque = True
         
     class domain_rand(A1LeapCfg.domain_rand):
         # push_robots = True # use for virtual training
@@ -101,7 +101,7 @@ class A1LeapRNDCfg( A1LeapCfg ):
 
 
 class A1LeapRNDCfgPPO( A1LeapCfgPPO ):
-    seed=5
+    seed=1
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True

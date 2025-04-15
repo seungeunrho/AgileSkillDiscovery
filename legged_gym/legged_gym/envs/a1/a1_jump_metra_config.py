@@ -54,6 +54,8 @@ class A1JumpMetraCfg( A1JumpCfg ):
 
         TerrainPerlin_kwargs = merge_dict(A1JumpCfg.terrain.TerrainPerlin_kwargs, dict(
             zScale= [0.05, 0.15],
+        # TerrainPerlin_kwargs = merge_dict(A1JumpCfg.terrain.TerrainPerlin_kwargs, dict(
+        #     zScale= [0.0, 0.0],
         ))
     
     class commands( A1JumpCfg.commands ):
@@ -81,7 +83,10 @@ class A1JumpMetraCfg( A1JumpCfg ):
        
     class domain_rand( A1JumpCfg.domain_rand ):
         push_robots = False
-
+    class noise(A1JumpCfg.noise):
+        add_noise=True
+        class noise_scales(A1JumpCfg.noise.noise_scales):
+            base_pose=0.1
     class rewards( A1JumpCfg.rewards ):
         class scales:
             tracking_ang_vel = 0.1
@@ -97,19 +102,19 @@ class A1JumpMetraCfg( A1JumpCfg ):
         max_contact_force = 100.0
 
 class A1JumpMetraCfgPPO( A1JumpCfgPPO ):
-    seed=3
+    seed=4
     class algorithm( A1JumpCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = True
-        kappa_cap = 10
-        kappa = 0.0
+        kappa_cap = 15
+        kappa = 15.0
     
     class runner( A1JumpCfgPPO.runner ):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_jump_metra'
         algorithm_class_name = 'PPOMetra'
-        max_iterations = 20000  # number of policy updates
+        max_iterations = 25000  # number of policy updates
         save_interval = 1000
         resume = False
     

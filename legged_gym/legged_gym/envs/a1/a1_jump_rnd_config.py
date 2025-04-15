@@ -33,7 +33,7 @@ class A1JumpRNDCfg( A1JumpCfg ):
         max_init_terrain_level = 2
         border_size = 5
         slope_treshold = 20.
-        curriculum = False
+        curriculum = True
 
         BarrierTrack_kwargs = merge_dict(A1JumpCfg.terrain.BarrierTrack_kwargs, dict(
             options= [
@@ -41,7 +41,7 @@ class A1JumpRNDCfg( A1JumpCfg ):
             ],
             track_block_length= 1.6,
             jump= dict(
-                height= (0.25, 0.25), # use this to train in virtual terrain
+                height= (0.2, 0.6), # use this to train in virtual terrain
                 # height= (0.1, 0.5), # use this to train in non-virtual terrain
                 depth= (0.1, 0.2),
                 fake_offset= 0.0, # [m] an offset that make the robot easier to get into the obstacle
@@ -71,7 +71,13 @@ class A1JumpRNDCfg( A1JumpCfg ):
             "z_high",
             "out_of_track",
         ]
-       
+    class control( A1JumpCfg.control ):
+        stiffness = {'joint': 50.}
+        damping = {'joint': 1.}
+        action_scale = 0.5
+        torque_limits = 25 # override the urdf
+        computer_clip_torque = True
+        motor_clip_torque = True
     class domain_rand( A1JumpCfg.domain_rand ):
         push_robots = False
 
@@ -90,7 +96,7 @@ class A1JumpRNDCfg( A1JumpCfg ):
         max_contact_force = 100.0
 
 class A1JumpRNDCfgPPO( A1JumpCfgPPO ):
-    seed=4
+    seed=1
     class algorithm( A1JumpCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True

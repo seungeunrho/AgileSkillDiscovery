@@ -37,7 +37,8 @@ class PPOMetra(PPO):
                  skill_reward_coef=0.0,
                  adjustable_kappa=False,
                  kappa_cap=1.0,
-                 kappa=0.0
+                 kappa=0.0,
+                 pretrain=False,
                  ):
         super().__init__(actor_critic,
                  num_learning_epochs=num_learning_epochs,
@@ -60,11 +61,13 @@ class PPOMetra(PPO):
                  skill_reward_coef=skill_reward_coef,
                  adjustable_kappa=adjustable_kappa,
                  kappa_cap=kappa_cap,
-                 kappa=kappa
+                 kappa=kappa,
+                 pretrain=pretrain,
                  )
         self.adjustable_kappa = adjustable_kappa
         self.kappa = torch.tensor([kappa], dtype=torch.float, device=device)
         self.kappa_cap = kappa_cap
+        self.pretrain=pretrain
         if adjustable_kappa:
             actor_num_params = sum(p.numel() for p in self.actor_critic.actor.parameters())
             self.prev_grad = torch.zeros(actor_num_params, dtype=torch.float, device=device)
@@ -95,7 +98,7 @@ class PPOMetra(PPO):
         self.actor_critic.act(minibatch.obs, masks=minibatch.masks, hidden_states=minibatch.hid_states[0])
         actions_log_prob_batch = self.actor_critic.get_actions_log_prob(minibatch.actions)
         value_batch, div_value_batch = self.actor_critic.evaluate(minibatch.critic_obs, masks=minibatch.masks,
-                                                 hidden_states=minibatch.hid_states[1])
+                                                 hidden_states=minibatch.hid_states[1:])
 
         adv = minibatch.advantages + self.kappa * minibatch.div_advantages
         
@@ -162,7 +165,10 @@ class PPOMetra(PPO):
         lamda_loss = self.actor_critic.lamda * torch.clamp(1. - phi_norm_squared.detach(),
                                                            max=self.actor_critic.epsilon)
         lamda_loss = (lamda_loss * (1 - minibatch.dones)).mean()
-
+        
+        if self.pretrain:
+            phi_loss=phi_loss*0.0
+            lamda_loss = lamda_loss*0.0
 
         return_ = dict(
             surrogate_loss=surrogate_loss,

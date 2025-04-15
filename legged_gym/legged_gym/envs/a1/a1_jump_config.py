@@ -81,8 +81,8 @@ class A1JumpCfg( A1FieldCfg ):
             world_vel_l2norm = -1.
             legs_energy_substeps = -1e-6
             alive = 2.
-            penetrate_depth = -1e-2
-            penetrate_volume = -1e-2
+            penetrate_depth = 0#-1e-2
+            penetrate_volume = 0#-1e-2
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
         soft_dof_pos_limit = 0.8
@@ -97,22 +97,24 @@ class A1JumpCfg( A1FieldCfg ):
 
 logs_root = osp.join(osp.dirname(osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__))))), "logs")
 class A1JumpCfgPPO( A1FieldCfgPPO ):
+    seed=1
     class algorithm( A1FieldCfgPPO.algorithm ):
+        add_skill_discovery_loss = False
         entropy_coef = 0.0
         clip_min_std = 0.2
     
     class runner( A1FieldCfgPPO.runner ):
         policy_class_name = "ActorCriticRecurrent"
         experiment_name = "field_a1"
-        resume = True
-        load_run = "{Your traind walking model directory}"
-        load_run = "{Your virtually trained jump model directory}"
+        resume = False
+        # load_run = "{Your traind walking model directory}"
+        # load_run = "{Your virtually trained jump model directory}"
         
-        run_name = "".join(["Skills_",
-        ("jump" if A1JumpCfg.terrain.BarrierTrack_kwargs["jump"]["jump_down_prob"] < 1. else "down"),
-        ("_virtual" if A1JumpCfg.terrain.BarrierTrack_kwargs["virtual_terrain"] else ""),
-        ("_noResume" if not resume else "_from" + "_".join(load_run.split("/")[-1].split("_")[:2])),
-        ])
+        # run_name = "".join(["Skills_",
+        # ("jump" if A1JumpCfg.terrain.BarrierTrack_kwargs["jump"]["jump_down_prob"] < 1. else "down"),
+        # ("_virtual" if A1JumpCfg.terrain.BarrierTrack_kwargs["virtual_terrain"] else ""),
+        # ("_noResume" if not resume else "_from" + "_".join(load_run.split("/")[-1].split("_")[:2])),
+        # ])
         max_iterations = 20000
-        save_interval = 500
+        save_interval = 1000
     

@@ -30,6 +30,8 @@
 
 from .ppo import PPO
 from .ppo_skill import PPOMetra
+from .ppo_skill_rnn import PPOMetraRNN
 from .ppo_diayn import PPODiayn
 from .ppo_rnd import PPORND
 from .tppo import TPPO
+from .estimator import EstimatorPPO, EstimatorTPPO

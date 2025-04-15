@@ -173,6 +173,8 @@ class TaskRegistry():
             if save_cfg:
                 shutil.copyfile(resume_path, os.path.join(log_dir, os.path.basename(resume_path)))
             runner.load(resume_path)
+            if train_cfg.runner.init_critic:
+                runner.init_critic()
         return runner, train_cfg
 
 # make global task registry

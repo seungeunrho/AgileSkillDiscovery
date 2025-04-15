@@ -81,14 +81,17 @@ class A1CrawlMetraCfg(A1CrawlCfg):
             penetrate_volume = 0.#-3e-3
             exceed_dof_pos_limits = -1e-1
             exceed_torque_limits_i = -2e-1
-            diversity = 0.0
+            diversity = 0.1
 
         only_positive_rewards = False # if true ne
     
     class normalization(A1CrawlCfg.normalization):
         class obs_scales(A1CrawlCfg.normalization.obs_scales):
             base_pose = [1., 1., 1., 1., 1., 1.]
-
+    class noise (A1CrawlCfg.noise):
+        add_noise=True
+        class noise_scales(A1CrawlCfg.noise.noise_scales):
+            base_pose=0.1
     class curriculum(A1CrawlCfg.curriculum):
         penetrate_volume_threshold_harder = 4000
         penetrate_volume_threshold_easier = 10000
@@ -97,23 +100,25 @@ class A1CrawlMetraCfg(A1CrawlCfg):
 
 
 class A1CrawlMetraCfgPPO(A1CrawlCfgPPO):
-    seed=4
+    seed=5
     class algorithm(A1CrawlCfgPPO.algorithm):
         add_skill_discovery_loss = True
         add_next_state = True
-        adjustable_kappa = False
+        adjustable_kappa = True
         kappa_cap = 10.0
-        kappa = 0
+        kappa = 0.6
     
         
     class runner(A1CrawlCfgPPO.runner):
         policy_class_name = 'ActorCriticMetra'
         experiment_name = 'a1_crawl_metra'
         algorithm_class_name = 'PPOMetra'
-        max_iterations = 15000  # number of policy updates
-        save_interval = 1000
-        resume = False
-
+        max_iterations = 5000  # number of policy updates
+        save_interval = 500
+        resume = True
+        load_run = "/nethome/kgarg65/flash/Agile_oc/Agile_oc/AgileSkillDiscovery/legged_gym/logs/a1_crawl_metra/Mar22_16-56-20_time_20s_gap_29cm_z_skill_dim1_oc_kappa_init_10_seed5"
+        checkpoint=15000
+        init_critic = False
     class policy(A1CrawlCfgPPO.policy):
         # for z
         phi_start_dim = 2

@@ -114,9 +114,20 @@ task_registry.register( "a1_jump_rnd", LeggedRobotRND, A1JumpRNDCfg(), A1JumpRND
 
 # from .a1.a1_tilt_diayn_config import A1TiltDiaynCfg, A1TiltDiaynCfgPPO
 # task_registry.register( "a1_tilt_diayn", LeggedRobotDiayn, A1TiltDiaynCfg(), A1TiltDiaynCfgPPO() )
-# from .a1.a1_crawl_diayn_config import A1CrawlDiaynCfg, A1CrawlDiaynCfgPPO
-# task_registry.register( "a1_crawl_diayn", LeggedRobotDiayn, A1CrawlDiaynCfg(), A1CrawlDiaynCfgPPO() )
+from .a1.a1_crawl_diayn_config import A1CrawlDiaynCfg, A1CrawlDiaynCfgPPO
+task_registry.register( "a1_crawl_diayn", LeggedRobotDiayn, A1CrawlDiaynCfg(), A1CrawlDiaynCfgPPO() )
 from .a1.a1_leap_diayn_config import A1LeapDiaynCfg, A1LeapDiaynCfgPPO
 task_registry.register( "a1_leap_diayn", LeggedRobotDiayn, A1LeapDiaynCfg(), A1LeapDiaynCfgPPO() )
-# from .a1.a1_jump_diayn_config import A1JumpDiaynCfg, A1JumpDiaynCfgPPO
-# task_registry.register( "a1_jump_diayn", LeggedRobotDiayn, A1JumpDiaynCfg(), A1JumpDiaynCfgPPO() )
+from .a1.a1_jump_diayn_config import A1JumpDiaynCfg, A1JumpDiaynCfgPPO
+task_registry.register( "a1_jump_diayn", LeggedRobotDiayn, A1JumpDiaynCfg(), A1JumpDiaynCfgPPO() )
+from .go2.go2_config import Go2RoughCfg, Go2RoughCfgPPO
+task_registry.register( "go2", LeggedRobot, Go2RoughCfg(), Go2RoughCfgPPO() )
+from .aliengo.aliengo_field_config import AliengoFieldCfg, AliengoFieldCfgPPO
+task_registry.register( "aliengo_field", LeggedRobotNoisy, AliengoFieldCfg(), AliengoFieldCfgPPO() )
+
+from .aliengo.aliengo_crawl_metra_config import AliengoCrawlMetraCfg, AliengoCrawlMetraCfgPPO
+task_registry.register( "aliengo_crawl_metra", LeggedRobotMetra, AliengoCrawlMetraCfg(), AliengoCrawlMetraCfgPPO() )
+from .aliengo.aliengo_jump_metra_config import AliengoJumpMetraCfg, AliengoJumpMetraCfgPPO
+task_registry.register( "aliengo_jump_metra", LeggedRobotMetra, AliengoJumpMetraCfg(), AliengoJumpMetraCfgPPO() )
+from .aliengo.aliengo_leap_metra_config import AliengoLeapMetraCfg, AliengoLeapMetraCfgPPO
+task_registry.register( "aliengo_leap_metra", LeggedRobotMetra, AliengoLeapMetraCfg(), AliengoLeapMetraCfgPPO() )

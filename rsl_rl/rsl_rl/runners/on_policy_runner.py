@@ -63,7 +63,7 @@ class OnPolicyRunner:
 
         alg_class = getattr(algorithms, self.cfg["algorithm_class_name"]) # PPO
         self.alg: algorithms.PPO = alg_class(actor_critic, device=self.device, **self.alg_cfg)
-        
+        print(self.cfg["algorithm_class_name"])
         self.num_steps_per_env = self.cfg["num_steps_per_env"]
         self.save_interval = self.cfg["save_interval"]
 
@@ -268,6 +268,22 @@ class OnPolicyRunner:
             print("Warning: lr_scheduler_state_dict not found in checkpoint but lr_scheduler in algorithm. Ignoring.")
         self.current_learning_iteration = loaded_dict['iter']
         return loaded_dict['infos']
+    
+    def weights_init(self,m):
+        if isinstance(m, torch.nn.Linear):
+            if m.out_features ==1:
+                torch.nn.init.normal_(m.weight)
+                torch.nn.init.normal_(m.bias)
+
+            else:
+                torch.nn.init.xavier_uniform_(m.weight)
+                torch.nn.init.normal_(m.bias)
+
+    def init_critic(self):
+        print("intitializing critic")
+        self.alg.actor_critic.critic.apply(self.weights_init)
+        self.alg.actor_critic.div_critic.apply(self.weights_init)
+        self.alg.actor_critic.discriminator.apply(self.weights_init)
 
     def get_inference_policy(self, device=None):
         self.alg.actor_critic.eval() # switch to evaluation mode (dropout for example)

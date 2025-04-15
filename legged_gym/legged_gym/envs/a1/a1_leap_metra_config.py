@@ -47,12 +47,12 @@ class A1LeapMetraCfg( A1LeapCfg ):
             # add_perlin_noise = False
         ))
 
-        # TerrainPerlin_kwargs = merge_dict(A1LeapCfg.terrain.TerrainPerlin_kwargs, dict(
-        #     zScale= [0.05, 0.1],
-        # ))
         TerrainPerlin_kwargs = merge_dict(A1LeapCfg.terrain.TerrainPerlin_kwargs, dict(
-            zScale= [0.0, 0.0],
+            zScale= [0.05, 0.1],
         ))
+        # TerrainPerlin_kwargs = merge_dict(A1LeapCfg.terrain.TerrainPerlin_kwargs, dict(
+        #     zScale= [0.0, 0.0],
+        # ))
     
     class commands( A1LeapCfg.commands ):
         class ranges( A1LeapCfg.commands.ranges ):
@@ -99,6 +99,8 @@ class A1LeapMetraCfg( A1LeapCfg ):
     class normalization(A1LeapCfg.normalization):
         class obs_scales(A1LeapCfg.normalization.obs_scales):
             base_pose = [1., 1., 1., 1., 1., 1.]
+    class noise(A1LeapCfg.noise):
+        add_noise=True
 
     class curriculum( A1LeapCfg.curriculum ):
         penetrate_volume_threshold_harder = 9000
@@ -108,13 +110,13 @@ class A1LeapMetraCfg( A1LeapCfg ):
 
 
 class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
-    seed=3
+    seed=1
     class algorithm( A1LeapCfgPPO.algorithm ):
         add_skill_discovery_loss = True
         add_next_state = True
         adjustable_kappa = True
         kappa_cap = 10
-        kappa = 0
+        kappa = 10
     
     class runner( A1LeapCfgPPO.runner ):
         policy_class_name = 'ActorCriticMetra'
@@ -123,6 +125,9 @@ class A1LeapMetraCfgPPO( A1LeapCfgPPO ):
         max_iterations = 10000  # number of policy updates
         save_interval = 1000
         resume = False
+        # load_run = "/nethome/kgarg65/flash/Agile_oc/Agile_oc/AgileSkillDiscovery/legged_gym/logs/field_a1_metra/Jan27_22-45-36_time_20s_oc_seed3"
+        # checkpoint = 5000
+        # init_critic = True
     
     class policy(A1LeapCfgPPO.policy):
         # for xyz

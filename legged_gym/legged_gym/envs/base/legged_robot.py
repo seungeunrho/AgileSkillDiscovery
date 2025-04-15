@@ -665,6 +665,7 @@ class LeggedRobot(BaseTask):
                 continue
             self.reward_names.append(name)
             name = '_reward_' + name
+            print(name)
             self.reward_functions.append(getattr(self, name))
 
         # reward episode sums

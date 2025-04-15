@@ -9,9 +9,9 @@ class A1FieldCfg( A1RoughCfg ):
             "proprioception", # 48
             # "height_measurements", # 187
             "base_pose",
-            "robot_config",
+            # "robot_config",
             "engaging_block",
-            "sidewall_distance",
+            # "sidewall_distance",
         ]
         # privileged_use_lin_vel = True # for the possible of setting "proprioception" in obs and privileged obs different
 
@@ -226,7 +226,7 @@ class A1FieldCfg( A1RoughCfg ):
         """ The above action clip is used for tanh policy activation. """
 
     class noise( A1RoughCfg.noise ):
-        add_noise = False # disable internal uniform +- 1 noise, and no noise in proprioception
+        add_noise = True # disable internal uniform +- 1 noise, and no noise in proprioception
         class noise_scales( A1RoughCfg.noise.noise_scales ):
             forward_depth = 0.1
             base_pose = 1.0
@@ -272,13 +272,14 @@ class A1FieldCfgPPO( A1RoughCfgPPO ):
     class algorithm( A1RoughCfgPPO.algorithm ):
         entropy_coef = 0.01
         clip_min_std = 1e-12
+        add_skill_discovery_loss = False
 
     class policy( A1RoughCfgPPO.policy ):
         rnn_type = 'gru'
         mu_activation = "tanh"
     
     class runner( A1RoughCfgPPO.runner ):
-        policy_class_name = "ActorCriticRecurrent"
+        policy_class_name = "ActorCritic"
         experiment_name = "field_a1"
         resume = False
         
@@ -297,6 +298,6 @@ class A1FieldCfgPPO( A1RoughCfgPPO ):
         ),
         ])
         resume = False
-        max_iterations = 10000
+        max_iterations = 5000
         save_interval = 500
     

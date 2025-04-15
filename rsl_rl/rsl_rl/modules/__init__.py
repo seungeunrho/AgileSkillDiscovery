@@ -33,9 +33,14 @@ from .actor_critic_discriminator import ActorCriticMetra
 from .actor_critic_diayn import ActorCriticDiayn
 from .actor_critic_rnd import ActorCriticRND
 from .actor_critic_recurrent import ActorCriticRecurrent
+from .actor_critic_recurrent_skill import ActorCriticRecurrentMetra
+
 from .visual_actor_critic import VisualDeterministicRecurrent, VisualDeterministicAC
 from .actor_critic_mutex import ActorCriticMutex
 from .actor_critic_field_mutex import ActorCriticFieldMutex, ActorCriticClimbMutex
+from .encoder_actor_critic import EncoderActorCriticMixin, EncoderActorCritic, EncoderActorCriticRecurrent
+from .state_estimator import EstimatorMixin, StateAc, StateAcRecurrent
+from .all_mixer import EncoderStateAc, EncoderStateAcRecurrent
 
 def build_actor_critic(env, policy_class_name, policy_cfg):
     """ NOTE: This method allows to hack the policy kwargs by adding the env attributes to the policy_cfg. """

@@ -66,6 +66,13 @@ class BaseTask():
         torch._C._jit_set_profiling_mode(False)
         torch._C._jit_set_profiling_executor(False)
 
+        self.extras = {}
+
+        # create envs, sim and viewer
+        self.create_sim()
+        self.gym.prepare_sim(self.sim)
+
+
         # allocate buffers
         self.obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float)
         self.rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
@@ -78,12 +85,7 @@ class BaseTask():
             self.privileged_obs_buf = None
             # self.num_privileged_obs = self.num_obs
 
-        self.extras = {}
-
-        # create envs, sim and viewer
-        self.create_sim()
-        self.gym.prepare_sim(self.sim)
-
+       
         # todo: read from config
         self.enable_viewer_sync = True
         self.viewer = None
