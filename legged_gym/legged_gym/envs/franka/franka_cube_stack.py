@@ -246,7 +246,7 @@ class FrankaCubeStack(BaseTask):
         
         # Initial tensor refresh
         self._refresh()
-        ipdb.set_trace()
+        # ipdb.set_trace()
         self.init_done = True
 
     # -------- Simulation Setup --------
@@ -575,7 +575,7 @@ class FrankaCubeStack(BaseTask):
         # Initial cube positions (for collision-free sampling)
         self._init_cubeA_state = self._cubeA_state.clone()
         self._init_cubeB_state = self._cubeB_state.clone()
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
     #----------------------------------------
     def _init_buffers(self):
         """Initialize additional tensor buffers used during training."""
@@ -713,7 +713,7 @@ class FrankaCubeStack(BaseTask):
         # Debug: Check for NaN in intermediate values
         if torch.any(~torch.isfinite(eef_vel)):
             print("NaN/Inf in eef_vel!")
-            ipdb.set_trace()
+            # ipdb.set_trace()
         
         # Transform cartesian action `dpose` into joint torques `u`
         u = torch.transpose(self._j_eef, 1, 2) @ m_eef @ (
@@ -737,7 +737,7 @@ class FrankaCubeStack(BaseTask):
             print(f"  m_eef has NaN: {torch.any(~torch.isfinite(m_eef))}")
             print(f"  j_eef has NaN: {torch.any(~torch.isfinite(self._j_eef))}")
             print(f"  dpose has NaN: {torch.any(~torch.isfinite(dpose))}")
-            ipdb.set_trace()
+            # ipdb.set_trace()
         
         # Clip to valid effort range
         u = tensor_clamp(
@@ -761,7 +761,7 @@ class FrankaCubeStack(BaseTask):
             Tuple of (obs, privileged_obs, rewards, dones, info)
         """
         self.pre_physics_step(actions)
-        ipdb.set_trace()
+        # ipdb.set_trace()
         # Render
         self.render()
         
@@ -870,7 +870,7 @@ class FrankaCubeStack(BaseTask):
         
         # Refresh state tensors
         
-        ipdb.set_trace()
+        # ipdb.set_trace()
         # Check termination and compute rewards
         self.check_termination()
         self.compute_reward()
@@ -965,7 +965,7 @@ class FrankaCubeStack(BaseTask):
                     print(f"    sample values: {val[0]}")
                 else:
                     print(f"  {ob_name}: OK")
-            ipdb.set_trace()
+            # ipdb.set_trace()
 
     # -------- Reset Functions --------
 
