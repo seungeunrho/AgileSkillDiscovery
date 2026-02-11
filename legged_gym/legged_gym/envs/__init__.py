@@ -131,3 +131,8 @@ from .aliengo.aliengo_jump_metra_config import AliengoJumpMetraCfg, AliengoJumpM
 task_registry.register( "aliengo_jump_metra", LeggedRobotMetra, AliengoJumpMetraCfg(), AliengoJumpMetraCfgPPO() )
 from .aliengo.aliengo_leap_metra_config import AliengoLeapMetraCfg, AliengoLeapMetraCfgPPO
 task_registry.register( "aliengo_leap_metra", LeggedRobotMetra, AliengoLeapMetraCfg(), AliengoLeapMetraCfgPPO() )
+
+# Franka manipulation tasks
+from .franka.franka_cube_stack import FrankaCubeStack
+from .franka.franka_cube_stack_config import FrankaCubeStackCfg, FrankaCubeStackCfgPPO
+task_registry.register( "franka_cube_stack", FrankaCubeStack, FrankaCubeStackCfg(), FrankaCubeStackCfgPPO() )
